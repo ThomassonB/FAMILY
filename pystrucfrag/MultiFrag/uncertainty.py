@@ -3,12 +3,13 @@ import numpy as np
 import shapely.geometry as shp
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
-import polygons_utility as pu
+from . import polygons_utility as pu
 import networkx as nx
 from shapely.ops import unary_union
+import pandas as pd
 
 from tqdm import tqdm
-import copy
+import copy, os
 
 def rotateEllipsoid(coords, rotation):
     arr = np.ravel(coords)
@@ -22,7 +23,7 @@ class Centroid:
         self.zo = zo
 
 class Ellipsoid:
-    def __init__(self, xo, yo, zo, a, b, c, rotation=(0, 0, 0), level=0, **kwargs):
+    def __init__(self, xo, yo, zo, a, b, c, rotation=(0, 0, 0), level=0, sidx=None, **kwargs):
         from scipy.spatial.transform import Rotation
 
         if isinstance(rotation, tuple):
@@ -37,6 +38,8 @@ class Ellipsoid:
         
         self.level = level
         self.volume = 4/3*np.pi*self.a*self.b*self.c
+
+        self.sidx = sidx
         
     def getContour(self, N = 32):
         u = np.linspace(0, 2 * np.pi, N)
@@ -171,7 +174,7 @@ class Ellipsoid:
                 ellchild = Ellipsoid(xo[count], yo[count], zo[count], 
                                      a[count], b[count], c[count],
                                      rotation=(prec[count], nut[count], gir[count]),
-                                     level = self.level + 1)
+                                     level = self.level + 1, sidx = self.sidx)
                 
                 hard = [not ellchild.within(other, minimum = impen) for other in self.ellchild]
                 
@@ -190,10 +193,12 @@ class Ellipsoid:
         self.genealogy(self.ellchild, N = Nl[l], size = sl[l], sep = sl[l], **kwargs)
 
 class Generator:
-    def __init__(self, initial_parents):
+    def __init__(self, initial_parents, save_path):
         self.initial_parents = initial_parents
+        self.save_path = save_path
 
-    def save_population(ells, phi3D, ratio, overlap):
+    def save_population(self, ells, phi3D, ratio, overlap):
+        
         data = {
         "xo":[],
         "yo":[],
@@ -202,7 +207,9 @@ class Generator:
         "b":[],
         "c":[],
         "rot":[],
-        "level":[]}
+        "level":[],
+        "structure":[],
+        }
     
         for ell in ells:
             data["xo"].append(    ell.centroid.xo)
@@ -213,17 +220,18 @@ class Generator:
             data["c"].append(     ell.c)
             data["rot"].append(   ell.rotation)
             data["level"].append( ell.level)
+            data["structure"].append( ell.sidx)
         
         pd_data = pd.DataFrame(data)
-        path = "/Users/thomaben/Documents/GitHub/EllispoidsPopulation/"
         
         phi3D = np.round(phi3D, decimals=2)
         ratio = np.round(ratio, decimals=2)
         overlap = np.round(overlap, decimals=2)
         name = "phi3D_" + str(phi3D).replace('.', 'p') + "r_" + str(ratio).replace('.', 'p') + "over_" + str(overlap).replace('.', 'p')
-        pd_data.to_csv(path + name + ".csv", index=False) 
+        
+        pd_data.to_csv(self.save_path + name + ".csv", index=False) 
 
-    def selectFragmentNumber(N):
+    def selectFragmentNumber(self, N):
         import bisect
     
         p = N - int(N)
@@ -235,13 +243,32 @@ class Generator:
         N_discrete = max(N_discrete, 1)
         return int(N_discrete)
 
-    def buildPopulation_3D(initial_parents, fragmentation_rates, scaling_ratios, overlap, Npoly= 64):
+    def mapPopulation_3D(self, initial_parents, fragmentation_rates, scaling_ratios, overlaps, Npoly = 64):
+        PHIS, R, OVER = np.meshgrid(fragmentation_rates, scaling_ratios, overlaps)
+        
+        for phi3D, ratio, over in zip(PHIS.flatten(), R.flatten(), OVER.flatten()):
+            N = ratio ** phi3D
+            ellc = copy.deepcopy(initial_parents)
+            size = 1/ratio
+            sep = size**2
+            
+            children = []
+            for ell in tqdm(ellc):
+                
+                n = self.selectFragmentNumber(N)
+                ell.children(N = n, size = size, sep = sep, minimum = over)
+                children += ell.ellchild
+                
+            total = ellc + children
+            self.save_population(total, phi3D, ratio, over)
+
+    def buildPopulation_3D(self, initial_parents, fragmentation_rates, scaling_ratios, overlaps, Npoly = 64):
         #PHIS, R, OVER = np.meshgrid(fragmentation_rate, scaling_ratios, overlap)
 
         ellipses = copy.deepcopy(initial_parents)
         
-        for phi3D, ratio in zip(fragmentation_rates, scaling_ratios):
-            number = ratio ** -phi3D
+        for phi3D, ratio, overlap in zip(fragmentation_rates, scaling_ratios, overlaps):
+            number = ratio ** phi3D
             size = 1/ratios
             sep = size**2
                         
@@ -254,9 +281,13 @@ class Generator:
             initial_parents = children
             ellipses += children
         
-        save_population(ellipses, fragmentation_rates, scaling_ratios, overlap)   
+        self.save_population(ellipses, 
+                             np.mean(fragmentation_rates), 
+                             np.mean(scaling_ratios), 
+                             np.mean(overlaps)
+                            )
 
-    def projectPopulation3D():
+    def projectPopulation3D(self):
 
         df = open_file()
 
@@ -269,15 +300,16 @@ class Generator:
                                 rotation = df["rot"][i], level=df["level"][i])
                     for i in df[sub_df].index]
             
-            polygons = extract_polygons(ellist, Npoly = 64)
-            merged_polygons += merge_overlap(polygons)
+            polygons = self.extract_polygons(ellist, Npoly = 64)
+            merged_polygons += self.merge_overlap(polygons)
             
-        saveCatalog2D(merged_polygons, df.header)   
+        return merged_polygons
+        #saveCatalog2D(merged_polygons, df.header)   
 
-    def saveCatalog2D():
+    def saveCatalog2D(self):
         pass
 
-    def isolating_graph(G):
+    def isolating_graph(self, G):
         degrees = sorted(G.degree, key = lambda x: x[1], reverse = True)
         #print(G.degree)
         node, degree = degrees[0]
@@ -287,7 +319,7 @@ class Generator:
             degrees = sorted(G.degree, key = lambda x: x[1], reverse = True)
             node, degree = degrees[0]
     
-    def extract_hull(ellipse, Npoly = 64):
+    def extract_hull(self, ellipse, Npoly = 64):
         xyz = ellipse.getContour(Npoly)
         x = np.reshape(xyz[2], (Npoly, Npoly))
         y = np.reshape(xyz[0], (Npoly, Npoly))
@@ -295,16 +327,16 @@ class Generator:
         points = np.reshape(np.ravel([np.ravel(x), np.ravel(y)]), (len(np.ravel(x)), 2), order='F')
         return ConvexHull(points)
     
-    def extract_polygons(ellist, Npoly = 64):
+    def extract_polygons(self, ellist, Npoly = 64):
         polygons = []
         
         for ellipse in ellist:
-            hull = extract_hull(ellipse, Npoly)
+            hull = self.extract_hull(ellipse, Npoly)
             polygons.append( shp.Polygon( hull.points[hull.vertices] ) )
             
         return polygons
     
-    def merge_overlap(polygons):
+    def merge_overlap(self, polygons):
         
         area = np.mean([p.area for p in polygons])
         min_separation = np.sqrt(2*np.log(2)) * np.sqrt(area / np.pi)
@@ -322,7 +354,8 @@ class Generator:
     
         new_polygons = polygons[:]
         while np.any(matrix == True):
-            G = nx.from_numpy_matrix(matrix)
+            G = nx.from_numpy_array(matrix)
+            #G = nx.from_numpy_matrix(matrix)
     
             maximal_cliques = sorted(nx.find_cliques(G), key=len, reverse=True)
     
@@ -346,7 +379,87 @@ class Generator:
         
         return new_polygons
 
-    def open_file(path):
+    def open_file(self, phi3D, ratio, over):
+        name = "phi3D_" + str(phi3D).replace('.', 'p') + "r_" + str(ratio).replace('.', 'p') + "over_" + str(over).replace('.', 'p')
+        print("opening", self.save_path + name + ".csv")
+        print("file in path:", name + ".csv" in os.listdir(self.save_path))
+        try:
+            df = pd.read_csv(self.save_path + name + ".csv")
+            print("success")
+        except:
+            df = None
+            print("failure")
+
+        if df is not None:
+            try:
+                df["rot"] = df["rot"].apply(reshape_func)
+            except:
+                pass
+        return df
+    
+    def countChildren(self, df, level):
+        N_3D = []
+        N_2D = []
+
+        idxs = (df["level"] == level)
+        
+        for sidx in np.unique(df["structure"]):
+            
+            polys =  df["polygons"][(df["structure"] == sidx) & (df["level"] == level)]
+            polylist = polys.to_list()
+            
+            #if len(polylist) != 0:
+                # polygons fusionnés
+            merged = self.merge_overlap( polylist )
+                
+            N_3D.append(len(polys))
+            N_2D.append(len(merged))
+
+        return N_3D, N_2D
+
+    def get_children_numbers(self, fragmentation_rate, scaling_ratios, overlap, Nobj):
+        PHIS, R, OVER = np.meshgrid(fragmentation_rate, scaling_ratios, overlap)
+
+        shape = [
+            len(fragmentation_rate),
+            len(scaling_ratios),
+            len(overlap),
+            Nobj,
+            2
+                ]
+        
+        print(shape)
+        
+        N_3Ds = np.ones(shape=shape)
+        N_2Ds = np.ones(shape=shape)
+
+        for phi3D, ratio, over in zip(np.ravel(PHIS), np.ravel(R), np.ravel(OVER)):
+            df = self.open_file(phi3D, ratio, over)
+
+            ells = [Ellipsoid(df["xo"][i], df["yo"][i], df["zo"][i], 
+                              df["a"][i], df["b"][i], df["c"][i], 
+                              rotation = df["rot"][i], level=df["level"][i])
+                            for i in range(len(df))]
+        
+            df['ellispoid'] = ells
+            polygons = self.extract_polygons(ells)
+            df['polygons'] = polygons
+
+            idx1 = np.argwhere(fragmentation_rate == phi3D)[0][0]
+            idx2 = np.argwhere(scaling_ratios == ratio)[0][0]
+            idx3 = np.argwhere(overlap == over)[0][0]
+            
+            for level in range(shape[-1]):
+                N_3D, N_2D = self.countChildren(df, level)
+
+                # numbers
+                N_3Ds[idx1, idx2, idx3, :, level] = N_3D
+                N_2Ds[idx1, idx2, idx3, :, level] = N_2D
+
+        return N_2Ds, N_3Ds
+        
+    
+    def _open_file(self):
         #path = "/Users/thomaben/Documents/GitHub/EllispoidsPopulation/"        
         PHIS, R, OVER = np.meshgrid(fragmentation_rate, scaling_ratios, overlap)
         
@@ -368,15 +481,15 @@ class Generator:
         size_prefilts = np.zeros(shape=shape2)
         size_postfilts = np.zeros(shape=shape2)
         
-        print(os.listdir(path))
+        print(os.listdir(self.save_path))
     
         for phi3D, ratio, over in zip(np.ravel(PHIS), np.ravel(R), np.ravel(OVER)):
             #print("phi3D", phi3D, "r", ratio, "over", over)
             name = "phi3D_" + str(phi3D).replace('.', 'p') + "r_" + str(ratio).replace('.', 'p') + "over_" + str(over).replace('.', 'p')
-            print("opening", path + name + ".csv")
-            print(name+ ".csv" in os.listdir(path))
+            print("opening", self.save_path + name + ".csv")
+            print(name + ".csv" in os.listdir(self.save_path))
             try:
-                df = pd.read_csv(path + name + ".csv")
+                df = pd.read_csv(self.save_path + name + ".csv")
                 print("success")
             except:
                 df = None
@@ -490,4 +603,13 @@ class Generator:
         Sizes = [size_3Ds, size_prefilts, size_postfilts]
     
         return Numbers, Coverage, Sizes
-            
+
+def reshape_func(row):
+    text = row.replace("\n", " ").replace('[', " ").replace(']', " ")
+    return np.reshape(np.fromstring(text, sep=' '), (3, 3))
+                
+def phi(N0, N1, r):
+    return np.log(N1/N0) / np.log(r)
+
+if __name__=="__main__":
+    pass

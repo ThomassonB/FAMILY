@@ -90,6 +90,13 @@ def sepAngular(lst):
                            lst[np.newaxis, :, 0], lst[np.newaxis, :, 1])
     return mat
 
+def sepDistance(lst):
+    """
+    Calcule la matrice des distances entre les centroids
+    """
+    mat = np.sqrt(
+        (lst[:, 0, np.newaxis] - lst[np.newaxis, :, 0]) ** 2 + (lst[:, 1, np.newaxis] - lst[np.newaxis, :, 1]) ** 2)
+    return mat
 
 def minDistance(polygons, mat, replace, p=0.05, verbose=False):
     from PyAstronomy import pyasl
