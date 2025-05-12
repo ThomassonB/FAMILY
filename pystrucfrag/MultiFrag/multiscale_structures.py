@@ -1,6 +1,5 @@
 import networkx as nx
 import numpy as np
-import shapely as shp
 
 from . import polygons_utility as putility
 from . import network_utility as utility
@@ -55,7 +54,7 @@ def getStructures(network):
         #####
         polygons = [poly for node, poly in component.nodes('_Polygon')]
         Poly = unary_union(polygons)
-        centroid = shp.centroid(Poly).xy
+        centroid = structureCentroid(component)
 
         #####
         # Metrics
