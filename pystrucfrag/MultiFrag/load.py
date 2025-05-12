@@ -3,6 +3,140 @@ import numpy as np
 import pandas as pd 
 import shapely.geometry.polygon as shp
 
+_init_default_dict = {
+    "object_type":1,
+    "x_coord_name":"X",
+    "y_coord_name":"Y",
+    "major_axis_name":"A_FWHM",
+    "minor_axis_name":"B_FWHM",
+    "position_angle_name":"Theta",
+    "x_coord_conversion_to_deg":1,
+    "y_coord_conversion_to_deg":1,
+    "major_conversion_to_hwhm":0.5, #half width at half maximum
+    "minor_conversion_to_hwhm":0.5, #half width at half maximum
+    "angle_conversion_to_radian":1,
+    "offset_angle": 0,
+    "beam":1,
+    "wavelength":1,
+    "source_extent":1,
+    "cloud_distance":1,
+    "catalog_path":"./",
+    "image_path":"./",
+    "extraction_window":-1,
+    "class_name":"Class",
+}
+
+def get_keywords():
+    return set(_init_default_dict.keys())
+
+
+def add_new(init_name, path, **kwargs):
+    if init_name[:-5] != "_init":
+        init_name += "_init"
+
+    init_dict = _init_default_dict.copy()
+    for key, value in kwargs.items():
+        init_dict[key] = value
+
+
+    len_key = len(max(init_dict, key=len))
+    len_values = len(max([str(value) for value in init_dict.values()], key=len))
+    line = '{0:<%d}\t{1:<%d}\t{2}\n' % (len_key, len_values)
+
+    with open(path + init_name, "w+") as init_file:
+        init_file.write(
+            f"{line.format("keyword", "value", "description")}"
+            f"_____________________________________________________\n"
+            f"{line.format("catalog_path", init_dict["catalog_path"],   "Path of catalog")}"
+            f"{line.format("image_path", init_dict["image_path"],       "Path of image")}"
+            f"{line.format("object_type", init_dict["object_type"],     "Objects type of catalog (yso is 0, ellipse is 1, polygon is 2)")}"
+            f"{line.format("beam", init_dict["beam"],                   "Beam used for the catalog (arcsec)")}"
+            f"{line.format("wavelength", init_dict["wavelength"],       "Wavelength of observation (microm)")}"
+            f"{line.format("cloud_distance", init_dict["cloud_distance"], "Distance (pc)")}"
+            f"{line.format("x_coord_name", init_dict["x_coord_name"], "Name of X coordinates column in the catalog")}"
+            f"{line.format("y_coord_name", init_dict["y_coord_name"], "Name of Y coordinates column in the catalog")}"
+            f"{line.format("x_coord_conversion_to_deg", init_dict["x_coord_conversion_to_deg"], "Conversion factor to have degrees")}"
+            f"{line.format("y_coord_conversion_to_deg", init_dict["y_coord_conversion_to_deg"], "Conversion factor to have degrees")}"
+        )
+
+        if init_dict["object_type"] == 0:
+            init_file.write(f"{line.format("class_name", init_dict["class_name"], "Name of YSO class column")}")
+
+        elif init_dict["object_type"] == 1:
+            init_file.write(
+                f"{line.format("major_axis_name", init_dict["major_axis_name"], "Name of major axis column")}"
+                f"{line.format("minor_axis_name", init_dict["minor_axis_name"], "Name of minor axis column")}"
+                f"{line.format("major_conversion_to_hwhm", init_dict["major_conversion_to_hwhm"], "Conversion factor to have degrees and half width at half maximum")}"
+                f"{line.format("minor_conversion_to_hwhm", init_dict["minor_conversion_to_hwhm"], "Conversion factor to have degrees and half width at half maximum")}"
+                f"{line.format("source_extent", init_dict["source_extent"], "Extent of sources (default is the FWHM)")}"
+                f"{line.format("position_angle_name", init_dict["position_angle_name"], "Name of position angle column")}"
+                f"{line.format("angle_conversion_to_radian", init_dict["angle_conversion_to_radian"], "Conversion factor to have radian")}"
+                f"{line.format("offset_angle", init_dict["offset_angle"], "Angle offset (rad)")}"
+                            )
+
+    print(f"file {init_name} created at:\n"
+          f"\t{path}")
+
+def read_init(file):
+    metadata = {}
+    with open(file, 'r') as f:
+        lines = f.readlines()[2:]
+        for line in lines:
+            key, value, *_ = line.split()
+            try:
+                metadata[key] = float(value)
+            except:
+                metadata[key] = value
+    return metadata
+
+def load_data(file, reader):
+    metadata = read_init(file)
+    strings_ref = ["_X", "_Y", "_A", "_B", "_Theta"]
+
+    data_frame = reader(metadata["catalog_path"])
+    if metadata["object_type"] == 0:
+        data_frame[strings_ref[0]] = pd.Series([float(i) for i in data_frame[metadata["x_coord_name"]]], index=data_frame.index)
+        data_frame[strings_ref[1]] = pd.Series([float(i) for i in data_frame[metadata["y_coord_name"]]], index=data_frame.index)
+
+        #circular source of beam size (in degree)
+        data_frame[strings_ref[2]] = pd.Series(np.ones_like(metadata["x_coord_name"]) * metadata["beam"] / 3600, index=data_frame.index)
+        data_frame[strings_ref[3]] = pd.Series(np.ones_like(metadata["x_coord_name"]) * metadata["beam"] / 3600, index=data_frame.index)
+        data_frame[strings_ref[4]] = pd.Series(np.zeros_like(metadata["x_coord_name"]), index=data_frame.index)
+
+        # set the size of object (in arcsec)
+        data_frame["_R"] = data_frame[strings_ref[2]] * 3600
+
+        # get classes in labelled
+        # data_frame["_Class"] = data_frame[metadata["class_name"]]
+
+        # keep only elements inside window
+        #points = [shp.Point(float(data_frame[strings_ref[0]][i]), float(data_frame[strings_ref[1]][i]))
+        #          for i in range(len(data_frame.index))]
+
+        #data_frame['iswithin'] = [point.within(window) for point in points]
+
+        #data_frame = data_frame[data_frame.Flag0 == True].reset_index()
+        #data_frame['Mass'] = 0
+
+    elif metadata["object_type"] == 1:
+        data_frame[strings_ref[0]] = data_frame[metadata["x_coord_name"]] * metadata["x_coord_conversion_to_deg"]
+        data_frame[strings_ref[1]] = data_frame[metadata["y_coord_name"]] * metadata["y_coord_conversion_to_deg"]
+
+        data_frame[strings_ref[2]] = data_frame[metadata["major_axis_name"]] * metadata["major_conversion_to_hwhm"] * metadata["source_extent"]
+        data_frame[strings_ref[3]] = data_frame[metadata["minor_axis_name"]] * metadata["minor_conversion_to_hwhm"] * metadata["source_extent"]
+        data_frame[strings_ref[4]] = data_frame[metadata["position_angle_name"]] * metadata["angle_conversion_to_radian"] + metadata["offset_angle"]
+
+        # set the size of object (in arcsec)
+        data_frame["_R"] = np.sqrt(data_frame[metadata["major_axis_name"]] * data_frame[metadata["minor_axis_name"]]) * 3600  # in arcsec
+
+    elif metadata["object_type"] == 2:
+        data_frame[strings_ref[0]] = data_frame[metadata["x_coord_name"]] * metadata["x_coord_conversion_to_deg"]
+        data_frame[strings_ref[1]] = data_frame[metadata["y_coord_name"]] * metadata["y_coord_conversion_to_deg"]
+
+    dataset = {"catalog": data_frame, "strings": strings_ref}
+    dataset.update(metadata)
+    return dataset
+
 def addInit(file):
     if os.path.exists(file):
         os.remove(file)
@@ -101,19 +235,6 @@ def readInit(file):
             args["classes"] = words
 
     return args
-
-def setup_init(init_file, replace=False):
-    try:
-        return readInit(init_file)
-        
-    except:
-        addInit(init_file)
-
-def reader_getsf(file, **kwargs):
-    pass
-
-def reader_rapson(file, **kwargs):
-    pass
 
 def loadData(file, reader=None, **pandas_kwargs):
     if not reader:
