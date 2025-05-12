@@ -14,14 +14,14 @@ import time
 import matplotlib.pyplot as plt
 
 class Data:
-    def __init__(self, file, reader=None, **pandas_kwargs):
-        self.path = file
-        information = load.loadData(file, reader=reader, **pandas_kwargs)
-        
+    def __init__(self, init_file, reader):
+        self.path = init_file
+        information = load.load_data(file=init_file, reader=reader)
         [setattr(self, key, value) for key, value in information.items()]
 
         ones = np.ones_like(len(self.catalog))
         self.addSerie("_phlevel", ones * self.beam)
+        self.color = 'r'
 
     def __iter__(self):
         for obj in self.catalog:
@@ -39,10 +39,33 @@ class Data:
     def addSerie(self, name, array):
         self.catalog[name] = array
 
+    def plot(self, figsize=(20, 15)):
+        import aplpy
+
+        fig = plt.figure(num=f"beam:{self.beam}", figsize=figsize)
+
+        f = aplpy.FITSFigure(self.image_path, figure=fig)
+        f.show_grayscale(stretch='sqrt')
+
+        polygons = putility.buildPolygons(self.catalog, self.strings, ptype = self.object_type)
+
+        PTS = []
+        for poly in polygons:
+            x, y = poly.exterior.xy
+            PTS.append(putility.reshape_coord_for_poly(x, y))
+
+        f.show_polygons(PTS,
+                        facecolor="None", edgecolor=self.color,
+                        lw=4, alpha=1)
+        return fig
+
 class Network:
     def __init__(self, *data, min_overlap = 0, graph = None, n_poly=128):
-        self.data = data
-        self.levels = [data.beam for data in self.data]
+        # sort the dataset from the lowest level to the highest
+        # avoid edges direction problems
+        levels = [data.beam for data in data]
+        self.levels, self.data = zip(*sorted(zip(levels, data)))
+
         self.min_overlap = min_overlap
 
         if graph is None:
@@ -62,19 +85,18 @@ class Network:
         for component in self._components:
             yield component
 
-    def _buildNetwork(self, n_poly=128, ptype=None):
+    def _buildNetwork(self, n_poly=128):
         from . import build_functions as bf
         
         G = nx.DiGraph()
-        catalogs= [d.catalog for d in self.data]
-        ang_res = [d.beam for d in self.data]
-        strings = [d.strings for d in self.data]
-    
-        polygons = [putility.buildPolygons(catalog, strings=strings[idx], N=n_poly, ptype=ptype) 
-                    for idx, catalog in enumerate(catalogs)]
 
+        polygons = [putility.buildPolygons(d.catalog, strings=d.strings, N=n_poly, ptype=d.object_type)
+                    for d in self.data]
+
+        catalogs = [d.catalog for d in self.data]
         bf.addNodes(G, catalogs, polygons)
 
+        ang_res = [d.beam for d in self.data]
         bf.addEdges(G, polygons, ang_res)
 
         self.network = G
@@ -170,8 +192,8 @@ class Structure:
                 if column == "mode":
                     yield column, value.name
                 elif column == "position":
-                    yield "xposition", value[0]
-                    yield "yposition", value[1]
+                    yield "xposition", value[0][0]
+                    yield "yposition", value[1][0]
                 else:
                     yield column, value
 
@@ -189,7 +211,7 @@ class Structure:
 
         # draw map
         import aplpy
-        
+
         ax_ellipses = fig.add_subplot(gs[0, 0])
         x0 = ax_ellipses.get_position().x0
         y0 = ax_ellipses.get_position().y0
@@ -202,7 +224,6 @@ class Structure:
         
         ax_ellipses.remove()
 
-        
         f = aplpy.FITSFigure(image, figure=fig, subplot=[x0, y0, dx, dy])
         f.show_grayscale(stretch='sqrt')
 
@@ -225,6 +246,6 @@ class Structure:
 
             f.show_polygons([pts],
                             facecolor="None",
-                            edgecolor=subset_color[self.component.nodes[node]["_level"]], lw=2,
+                            edgecolor=subset_color[self.component.nodes[node]["_level"]], lw=4,
                             alpha=1)
         return fig
