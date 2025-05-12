@@ -34,8 +34,8 @@ def reshape_coord_for_poly_vec(x, y):
     coords = np.dstack((x, y))
     return coords
 
-def buildPolygons(catalog, strings, N=128, ptype = 1):
-    if ptype != 2:
+def buildPolygons(catalog, strings, N=128, ptype = None):
+    if not ptype:
         args = np.array([catalog[s].to_numpy()[:, np.newaxis] for s in strings])
         x, y = ellipse(*args, N=N)
         #print(x)
@@ -47,7 +47,7 @@ def buildPolygons(catalog, strings, N=128, ptype = 1):
         for xx, yy in zip(x, y):
             coords.append(reshape_coord_for_poly(xx, yy))
             #print(len(catalog), xx, yy)
-            #pp = shp.Polygon(reshape_coord_for_poly(xx, yy))
+            pp = shp.Polygon(reshape_coord_for_poly(xx, yy))
             #if not pp.is_valid:
             #    print(len(catalog), xx, yy)
 
