@@ -184,7 +184,7 @@ class InspectNetwork:
         self.clumps = utility.toDataFrame(self.network)
         self.structures = network.getStructuresTable()
         
-        self.images = [data.image_path for data in network.data]
+        self.images = [data.metadata['image'] for data in network.data]
         self.scales = network.levels
         
         self.root = tk.Tk()
@@ -282,6 +282,12 @@ class InspectNetwork:
         plt.close(fig=self.fig)
         
         self.aplpyfig.set_auto_refresh(True)
+
+        self.aplpyfig.tick_labels.set_xformat('dd.ddd')
+        self.aplpyfig.tick_labels.set_yformat('dd.ddd')
+    
+        self.aplpyfig.axis_labels.set_xtext('RAJ2000')
+        self.aplpyfig.axis_labels.set_ytext('DEJ2000')
     
         ###grid
         self.aplpyfig.add_grid()
