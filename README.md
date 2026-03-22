@@ -46,6 +46,8 @@ Clone this repository:
 ## Related Papers
 
 Thomasson et al. 2022, Astronomy and Astrophysics, 665, A119. doi:10.1051/0004-6361/202243275
+
 Thomasson et al. 2024, Astronomy and Astrophysics, 689, A133. doi:10.1051/0004-6361/202449649
+
 Thomasson et al. 2022, Astronomy and Astrophysics, arXiv, arXiv:2602.03976. doi:10.48550/arXiv.2602.03976
 
