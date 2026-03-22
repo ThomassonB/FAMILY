@@ -12,7 +12,7 @@ This repository is intended for the study of hierarchical structure formation an
 ## Project status
 
 This repository is currently being reorganized and documented.  
-Some sections — including project information, usage tutorials, requirements, and installation instructions — are still incomplete or subject to revision.
+Some sections (including project information, usage tutorials, requirements, and installation instructions) are still incomplete or subject to revision.
 
 They will be clarified and expanded in upcoming updates of the repository.
 
