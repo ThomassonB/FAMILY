@@ -9,10 +9,10 @@ FAMILY is a framework designed to analyse multiscale gaseous structures and thei
 
 This repository is intended for the study of hierarchical structure formation and fragmentation in astrophysical gaseous systems. 
 
-## Project status
+> ## Project status - Early public version (`v0.1.0`).  
 
-This repository is currently being reorganized and documented.  
-Some sections (including project information, usage tutorials, requirements, and installation instructions) are still incomplete or subject to revision.
+> This repository is currently being reorganized and documented.  
+> Some sections (including project information, usage tutorials, requirements, and installation instructions) are still incomplete or subject to revision.
 
 They will be clarified and expanded in upcoming updates of the repository.
 
@@ -24,10 +24,11 @@ They will be clarified and expanded in upcoming updates of the repository.
 
 ## General Info
 
-License
 Version **v0.1.0**
-Question ? You can contact me at
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Content Code
 
