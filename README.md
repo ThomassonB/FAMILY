@@ -3,9 +3,9 @@
 
 FAMILY is a framework designed to analyse multiscale gaseous structures and their hierarchical relationships across spatial scales. It provides tools to:
 
-- build **parent–child relationships** between gas structures identified at different spatial scales,
-- compare the resulting statistics with a **theoretical model**,
-- generate **fragmented core mass functions (fCMFs)** with Monte-Carlo simulation.
+- build parent–child relationships between gas structures identified at different spatial scales,
+- compare the resulting statistics with a theoretical model,
+- generate fragmented core mass functions with Monte-Carlo simulation.
 
 This repository is intended for the study of hierarchical structure formation and fragmentation in astrophysical gaseous systems. 
 
