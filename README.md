@@ -31,11 +31,14 @@ Question ? You can contact me at
 
 ## Content Code
 
-### Model
-
 ### Tool
 
+The FAMILY framework for building parentality relationships is available in the `MultiFrag` folder.  
 Function **x** is doing this and that
+
+### Model
+
+The theoretical model used to compare the parentality results is available in the `model` folder.
 
 ## Installation
 
