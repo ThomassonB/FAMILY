@@ -1,0 +1,40 @@
+[dataset]
+name = "L04" # arbitrary name of the catalog to identify it
+
+[objects]
+type  = 0 # 0 = ellipses, 1 = yso ; -1 = polygons
+comment = "" # additional information on the objects
+
+[files]
+catalog    = "./benchmark/catalogs/ellipses_level_4.csv"
+fits_img   = "./benchmark/fits/gaussian_map.fits" # .fits from which the objects are extracted
+
+[columns_names_in_catalog]
+# for non polygons objects
+Xposition       = "Xpos"
+Yposition       = "Ypos"
+SemiMajorAxis   = "A_FWHM"
+SemiMinorAxis   = "B_FWHM"
+PosAngle        = "ANG"
+Mass            = "M"
+Class           = "Class" # for ysos
+
+polygons = "some/path/"
+
+[unit_conversion]
+n_sigma                 = 1 # number of sigma to take when defining the extent of your (supposed gaussian) structures
+
+Xposition_to_deg        = 1 # if columns not in degree, put the conversion factor here
+Yposition_to_deg        = 1
+SemiMajorAxis_to_deg    = 1 # if colums is Full Width at Half Maximum, divide the conversion factor by 2
+SemiMinorAxis_to_deg    = 1
+PosAngle_to_rad         = 0.0174533 # if angle not in rad, put the conversion factor here
+PosAngle_offset         = 0 # if axis of reference is not X, put the offset (rad) here
+Mass_to_Msun            = 1 # if columns not in Msun, put the conversion factor here
+
+[observation]
+beam       = 0.125 # in arcsec
+wavelength = 0.0 # in µm
+distance   = 1 # pc
+fov_window = -1 # a path to a file containing the extraction field of view associated to the catalog (polygons)
+# if -1, fov is the full image

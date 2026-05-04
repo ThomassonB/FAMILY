@@ -1,5 +1,4 @@
 import shapely.geometry as shp
-from shapely.ops import cascaded_union
 import pandas as pd
 import networkx as nx
 import numpy as np
@@ -7,24 +6,64 @@ import numpy as np
 from . import polygons_utility as putility
 from . import network_utility as utility
 from . import load, plotter
+from .standard_variables import strings_ref, ellipse_params_labels
 
 import operator
 import time
 
 import matplotlib.pyplot as plt
 
-class Data:
-    def __init__(self, init_file, reader):
-        self.path = init_file
-        information = load.load_data(file=init_file, reader=reader)
-        [setattr(self, key, value) for key, value in information.items()]
+class DataSet:
+    def __init__(self, items=None):
+        self._data = {}
+        if items:
+            for item in items:
+                self.add(item)
 
-        ones = np.ones_like(len(self.catalog))
-        self.addSerie("_phlevel", ones * self.beam)
-        self.color = 'r'
+    def __getitem__(self, name):
+        return self._data[name]
+
+    def __contains__(self, name):
+        return name in self._data
 
     def __iter__(self):
-        for obj in self.catalog:
+        return iter(self._data.values())
+
+    def add(self, data):
+        if data.name in self:
+            raise ValueError(f"Nom déjà présent : {data.name}")
+        self._data[data.name] = data
+
+    def get(self, name):
+        return self._data[name]
+
+    def items(self):
+        return self._data.items()
+
+    def keys(self):
+        return self._data.keys()
+
+    def values(self):
+        return self._data.values()
+
+class Data:
+    def __init__(self, init_file, reader_to_df):
+        self.path = init_file
+        metadata = load.load_data(file=init_file, reader_to_df=reader_to_df)
+        [setattr(self, key, value) for key, value in metadata.items()]
+
+        self.color = 'r'
+
+    def __str__(self):
+        ok_values = {'comment', 'fits_img', 'catalog', 'beam ["]', 'wavelength [µm]', 'distance [pc]'}
+        lines = [f"name \t\t- \t{self.name}"]
+        lines.extend(f"{key} \t- \t{value}" for key, value in vars(self).items() if key in ok_values)
+        lines.append("")
+        lines.append(self.df.to_string())
+        return "\n".join(lines)
+
+    def __iter__(self):
+        for obj in self.df:
             yield obj
 
     def setColor(self, color):
@@ -60,43 +99,74 @@ class Data:
         return fig
 
 class Network:
-    def __init__(self, *data, min_overlap = 0, graph = None, n_poly=128):
+    def __init__(self, dataset, min_overlap = 0, graph = None, n_poly=128):
+        self.min_overlap = min_overlap
+        self.n_poly = n_poly
+        self.structures = None
+        self.levels = None
+        
+        if graph is not None:
+            self.network = graph
+        else:
+            if dataset is None:
+                raise ValueError("dataset must be provided when graph is None")
+
+            data = self._sorted_data(dataset)
+            self.levels = tuple(sorted(d.beam for d in data))
+            self._build_complete(data)
+
         # sort the dataset from the lowest level to the highest
         # avoid edges direction problems
-        levels = [data.beam for data in data]
-        self.levels, self.data = zip(*sorted(zip(levels, data)))
-
-        self.min_overlap = min_overlap
-
-        if graph is None:
-            self._buildComplete(n_poly=n_poly)
-        else:
-            self.network = graph
-
-        self._components = utility.getComponents(self.network)
+        #levels = [data.beam for data in dataset]
+        #self.levels, self.data = zip(*sorted(zip(levels, dataset.values())))
+        #if graph is None:
+        #    self._buildComplete(n_poly=n_poly)
+        #else:
+        #    self.network = graph
 
     def __str__(self):
-        return self.data
+        lines = [
+            "Network",
+            f"min_overlap - {self.min_overlap}",
+            f"n_nodes - {self.network.number_of_nodes()}",
+            f"n_edges - {self.network.number_of_edges()}",
+            f"n_components - {len(self.components)}",
+        ]
+
+        if self.levels is not None:
+            lines.append(f"levels - {self.levels}")
+
+        return "\n".join(lines)
 
     def __contains__(self, component):
         return component in self._components
 
     def __iter__(self):
-        for component in self._components:
-            yield component
+        yield from self.components
 
-    def _buildNetwork(self, n_poly=128):
+    def __len__(self):
+        return len(self.components)
+
+    @staticmethod
+    def _sorted_data(dataset):
+        values = dataset.values()
+        return tuple(sorted(values, key=lambda d: d.beam))
+        
+    @property
+    def components(self):
+        return utility.getComponents(self.network)
+
+    def _build_network(self, data):
         from . import build_functions as bf
         
         G = nx.DiGraph()
 
-        polygons = [putility.buildPolygons(d.catalog, strings=d.strings, N=n_poly, ptype=d.object_type)
-                    for d in self.data]
+        polygons = [putility.buildPolygons(d.df, N=self.n_poly) for d in data]
 
-        catalogs = [d.catalog for d in self.data]
+        catalogs = [d.df for d in data]
         bf.addNodes(G, catalogs, polygons)
 
-        ang_res = [d.beam for d in self.data]
+        ang_res = [d.beam for d in data]
         bf.addEdges(G, polygons, ang_res)
 
         self.network = G
@@ -114,8 +184,8 @@ class Network:
         from . import label_nodes
         label_nodes.prepareNetwork(self.network, base)
 
-    def _buildComplete(self, n_poly=128):
-        self._buildNetwork(n_poly)
+    def _build_complete(self, data):
+        self._build_network(data)
         self._selectOverlap()
         self._cutUndirectedEdges()
         self._prepare()
@@ -162,7 +232,7 @@ class Structure:
         self.label = label
         self.component = component
         self.levels = len(set(att for node, att in component.nodes('_level')))
-        self.scales = set(att for node, att in component.nodes('_phlevel'))
+        self.scales = set(att for node, att in component.nodes('_beam'))
 
         [setattr(self, key, value) for key, value in kwargs.items() if key not in ('label', 'component', 'levels', 'scales')]
 
@@ -237,8 +307,8 @@ class Structure:
         polygons = nx.get_node_attributes(self.component, "_Polygon").items()
         scales = utility.getLevels(self.component)
         for b in scales[::-1]:
-            [P.append(p) for n, p in polygons if self.component.nodes[n]["_phlevel"] == b]
-            [N.append(n) for n, p in polygons if self.component.nodes[n]["_phlevel"] == b]
+            [P.append(p) for n, p in polygons if self.component.nodes[n]["_beam"] == b]
+            [N.append(n) for n, p in polygons if self.component.nodes[n]["_beam"] == b]
 
         for node, poly in zip(N, P):
             x, y = poly.exterior.xy

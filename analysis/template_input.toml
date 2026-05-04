@@ -1,0 +1,41 @@
+[files]
+catalog    = "/path/to/catalog"
+fits_img   = "/path/to/fits" # .fits from which the objects are extracted
+
+[objects]
+type  = 0 # 0 = ellipses, 1 = yso ; -1 = polygons
+label = "" # additional information on the objects, i.e the class of the YSO
+
+[columns_names_in_catalog]
+# for non polygons objects
+Xposition       = "X"
+Yposition       = "Y"
+SemiMajorAxis   = "A_FWHM"
+SemiMinorAxis   = "B_FWHM"
+PosAngle        = "Theta"
+Mass            = "M"
+
+# for polygons objects, a path where the polygons are stored
+polygons = "some/path/"
+
+[unit_conversion]
+n_sigma                 = 1 # number of sigma to take when defining the extent of your (supposed gaussian) structures
+
+Xposition_to_deg        = 1 # if columns not in degree, put the conversion factor here
+Yposition_to_deg        = 1
+SemiMajorAxis_to_deg    = 1 # if colums is Full Width at Half Maximum, divide the conversion factor by 2
+SemiMinorAxis_to_deg    = 1
+PosAngle_to_rad         = 1 # if angle not in rad, put the conversion factor here
+PosAngle_offset         = 0 # if axis of reference is not X, put the offset (rad) here
+Mass_to_Msun            = 1 # if columns not in Msun, put the conversion factor here
+
+[observation]
+beam       = 0.0 # in arcsec
+wavelength = 0.0 # in µm
+distance   = 723 # pc
+fov_window = -1 # a path to a file containing the extraction field of view associated to the catalog (polygons)
+# if -1, fov is the full image
+
+[catalog_header]
+header_line = 0  # line of the columns header
+line_stop   = -1 # line of the last row of the catalog, -1 takes everything

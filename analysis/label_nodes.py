@@ -52,8 +52,8 @@ def setLevel(graph, levels):
     levels : list of float
         contains the ordered physical levels. The label corresponds to the index of the associated physical level.
     """
-    for node, phlevel in graph.nodes("_phlevel"):
-        graph.nodes[node]["_level"] = levels.index(phlevel)
+    for node, beam in graph.nodes("_beam"):
+        graph.nodes[node]["_level"] = levels.index(beam)
 
 def getHoles(graph, levels):
     """
@@ -81,8 +81,8 @@ def getHoles(graph, levels):
     #for u, v, dl in graph.edges.data('_deltal'):
     #    Nvec = np.zeros_like(levels)
     #    if dl != 1:
-    #        ro = levels.index(graph.nodes[u]['_phlevel'])
-    #        rl = levels.index(graph.nodes[v]['_phlevel'])
+    #        ro = levels.index(graph.nodes[u]['_beam'])
+    #        rl = levels.index(graph.nodes[v]['_beam'])
     #        Nvec[rl + 1:ro] = 1
     #    graph.nodes[v]['_Holes'] = np.sum(Nvec)
 

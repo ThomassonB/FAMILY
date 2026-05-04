@@ -108,7 +108,7 @@ def fractality(graph, eta=2):
             if kind.value in (1, 4): #source or isolated
                 conn = [node] + [v for v in g.nodes if nx.has_path(g, node, v)]
                 subg = g.subgraph(conn)
-                sl = sorted(list(getSetAttribute(subg, "_phlevel")))
+                sl = sorted(list(getSetAttribute(subg, "_beam")))
                 gamma = np.log(max(sl) / np.array(sl)) / np.log(eta)
                 N = len(subg.nodes)
                 sol = optimize.root(f, 0.5, args=(gamma, N), method='lm') #or df-sane, in either case the other solvers are trash with this function
@@ -144,13 +144,13 @@ def virtualNodes(graph, levels):
     for u, v, dl in graph.edges.data('_deltal'):
         if (dl != 1) and graph.edges[u, v]["dir"]:
 
-            level_max = levels.index(graph.nodes[u]['_phlevel'])
-            level_min = levels.index(graph.nodes[v]['_phlevel'])
+            level_max = levels.index(graph.nodes[u]['_beam'])
+            level_min = levels.index(graph.nodes[v]['_beam'])
 
             virtual_idx_list = []
             for level in range(level_min + 1, level_max):
                 tpl = (f"virtual-{virtual_idx}", 
-                       dict(_phlevel=levels[level], _Kind=ln.NodeKind.VIRTUAL, _level=level)) 
+                       dict(_beam=levels[level], _Kind=ln.NodeKind.VIRTUAL, _level=level)) 
                 nbunch.append(tpl)
 
                 virtual_idx_list.append(virtual_idx)
@@ -185,7 +185,7 @@ def getSetAttribute(graph, attr):
     return set(att for _, att in graph.nodes(attr))
 
 def getLevels(graph):
-    return sorted(list(getSetAttribute(graph, "_phlevel")))  # low scale to high scale
+    return sorted(list(getSetAttribute(graph, "_beam")))  # low scale to high scale
 
 def getNodeAttributes(graph, attribute):
     return [att for _, att in graph.nodes(attribute)]
@@ -324,7 +324,7 @@ def loadNetwork(isdirected=True):
 
     graph.add_edges_from(ebunch)
 
-    scales = sorted(list(set(dict(nx.get_node_attributes(graph, '_phlevel')).values())))
+    scales = sorted(list(set(dict(nx.get_node_attributes(graph, '_beam')).values())))
     return graph, np.array(scales)
 
 def statistics(graph, attribute):
