@@ -32,7 +32,7 @@ def getStructures(network):
     from . import analyse
     from shapely.ops import unary_union
 
-    levels = sorted(list(utility.getSetAttribute(network, "_phlevel")))
+    levels = sorted(list(utility.getSetAttribute(network, "_beam")))
     for idx, component in enumerate(utility.getComponents(network)):
         #####
         # Statistic
@@ -82,7 +82,7 @@ def getStructures(network):
                         missed=Missed,
                         percmissed=pMissed,
                         triplets=utility.transitiveTriplets(component),
-                        maxR=max([at for n, at in component.nodes('_phlevel')]),
+                        maxR=max([at for n, at in component.nodes('_beam')]),
                         YSO=len([x for x in classes if x is not None]),
                         gas=len([x for x in classes if x is None]),
                         nbunch=list(component.nodes),
@@ -137,7 +137,7 @@ def nodeKindRepartition(graph, levels):
     inter = []
     si = []
     for l in levels:
-        feature = {'node': {'_phlevel': [l, operator.eq]}}
+        feature = {'node': {'_beam': [l, operator.eq]}}
         comp = utility.selector(graph, feature)
 
         tpls = nodeKindNumber(comp)
@@ -192,7 +192,7 @@ def cumulativeSource(graph, levels):
         that are localised in scales >= 10kAU
     """
     return [len([node
-                 for node, r in graph.nodes('_phlevel')
+                 for node, r in graph.nodes('_beam')
                  if graph.nodes[node]['_Kind'].value == 1 and r >= l])
             for l in levels]
 

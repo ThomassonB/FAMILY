@@ -1,3 +1,5 @@
+from .standard_variables import ellipse_params_labels
+
 import numpy as np
 import shapely.geometry.polygon as shp
 import time
@@ -34,23 +36,22 @@ def reshape_coord_for_poly_vec(x, y):
     coords = np.dstack((x, y))
     return coords
 
-def buildPolygons(catalog, strings, N=128, ptype = 1):
-    if ptype != 2:
-        args = np.array([catalog[s].to_numpy()[:, np.newaxis] for s in strings])
-        x, y = ellipse(*args, N=N)
-        #print(x)
-        coords = reshape_coord_for_poly_vec(x, y)
-        #print(coords.shape)
-    else:
-        x, y = catalog[strings[0]], catalog[strings[1]]
-        coords = []
-        for xx, yy in zip(x, y):
-            coords.append(reshape_coord_for_poly(xx, yy))
-            #print(len(catalog), xx, yy)
-            #pp = shp.Polygon(reshape_coord_for_poly(xx, yy))
-            #if not pp.is_valid:
-            #    print(len(catalog), xx, yy)
+def buildPolygons(catalog, N=128):
+    args = np.array([catalog[label].to_numpy()[:, np.newaxis] for label in ellipse_params_labels])
+    x, y = ellipse(*args, N=N)
+    coords = reshape_coord_for_poly_vec(x, y)
 
+    """
+    old script for polygons instead of ellipses parameters
+    x, y = catalog[strings[0]], catalog[strings[1]]
+    coords = []
+    for xx, yy in zip(x, y):
+        coords.append(reshape_coord_for_poly(xx, yy))
+        #print(len(catalog), xx, yy)
+        #pp = shp.Polygon(reshape_coord_for_poly(xx, yy))
+        #if not pp.is_valid:
+        #    print(len(catalog), xx, yy)
+    """
     return [shp.Polygon(c) for c in coords]
 
 def testMatrix(mat, size, p):

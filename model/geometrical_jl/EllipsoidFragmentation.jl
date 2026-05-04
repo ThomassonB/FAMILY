@@ -116,39 +116,6 @@ function within(child::Ellipsoid, parent::Ellipsoid; minimum=0.9, sampling=1000)
 end
 
 """
-function within(child::Ellipsoid, parent::Ellipsoid; minimum=0.9, sampling=1000)
-    dx = Distributions.Uniform(-child.a, child.a)
-    dy = Distributions.Uniform(-child.b, child.b)
-    dz = Distributions.Uniform(-child.c, child.c)
-    
-    # Generate random points inside child ellipsoid
-    count_inside = 0
-    
-    for _ in 1:sampling
-        # Random point in child's bounding box
-        x = Random.rand(Distributions.Uniform(-child.a, child.a))
-        y = Random.rand(Distributions.Uniform(-child.b, child.b))
-        z = Random.rand(Distributions.Uniform(-child.c, child.c))
-        
-        point_local = [x, y, z]
-        
-        # Check if inside child ellipsoid
-        if (x/child.a)^2 + (y/child.b)^2 + (z/child.c)^2 <= 1.0
-            # Transform to absolute coordinates
-            point_abs = child.rotation * point_local + [child.xo, child.yo, child.zo]
-            
-            # Check if inside parent
-            if is_inside(parent, point_abs)
-                count_inside += 1
-            end
-        end
-    end
-    
-    return (count_inside / sampling) >= minimum
-end
-"""
-
-"""
 Check if two ellipsoids intersect
 """
 function intersects(ell1::Ellipsoid, ell2::Ellipsoid; hard_threshold=1e-3)

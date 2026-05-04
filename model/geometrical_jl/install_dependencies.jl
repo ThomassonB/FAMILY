@@ -27,7 +27,8 @@ packages = [
     "HDF5",
     "JSON",
     "Plots",
-    "Trapz"
+    "Trapz",
+    "FITSIO"
 ]
 
 println("Packages to install:")

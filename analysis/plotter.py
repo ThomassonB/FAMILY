@@ -184,7 +184,7 @@ class InspectNetwork:
         self.clumps = utility.toDataFrame(self.network)
         self.structures = network.getStructuresTable()
         
-        self.images = [data.image_path for data in network.data]
+        self.images = [data.fits_img for data in network.data]
         self.scales = network.levels
         
         self.root = tk.Tk()
@@ -194,7 +194,9 @@ class InspectNetwork:
         self._initialise_tkinterColors()
         self._initialise_tkinterPlots()
 
-        self.root.geometry("1200x1200")
+        self.root.geometry("900x600")
+        self.root.rowconfigure(0, weight=1)
+        self.root.columnconfigure(1, weight=1)
         self.root.mainloop()
         
 
@@ -348,7 +350,7 @@ class InspectNetwork:
         polygons = nx.get_node_attributes(component, '_Polygon').items()
 
         for i, b in enumerate(sorted(self.scales, reverse=True)):
-            P = [p for node, p in polygons if component.nodes[node]["_phlevel"] == b]
+            P = [p for node, p in polygons if component.nodes[node]["_beam"] == b]
             PTS = []
             for poly in P:
                 x, y = poly.exterior.xy
@@ -367,7 +369,7 @@ class InspectNetwork:
         component = self.structures["component"][idx]
 
         #subset_color = [color.get() for color in self.subset_colors.values()]
-        color = [self.subset_colors[f"{data['_phlevel']}"].get() for v, data in component.nodes(data=True)]
+        color = [self.subset_colors[f"{data['_beam']}"].get() for v, data in component.nodes(data=True)]
         pos = nx.multipartite_layout(component, subset_key="_level", align="horizontal")
         nx.draw(component, pos, ax=self.net_ax, node_color=color, node_size=200, with_labels=True)
         plt.axis("equal")

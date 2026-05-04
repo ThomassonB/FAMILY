@@ -29,7 +29,7 @@ end
 Project a 3D ellipsoid onto a 2D plane.
 Returns (x_center, y_center, semi_major, semi_minor, angle).
 """
-function project_ellipse_2d(xo, yo, zo, a, b, c, rotation, axis::Symbol)
+function project_ellipse_2d(xo, yo, zo, a, b, c, l, rotation, axis::Symbol)
     # Define projection matrix based on axis
     if axis == :xy  # Project onto XY plane (view from +Z)
         proj_matrix = [1.0 0.0 0.0; 0.0 1.0 0.0]
@@ -69,7 +69,7 @@ function project_ellipse_2d(xo, yo, zo, a, b, c, rotation, axis::Symbol)
     # Angle of major axis
     angle = atan(eigenvectors[2, 1], eigenvectors[1, 1])
     
-    return (center[1], center[2], semi_a, semi_b, angle)
+    return (center[1], center[2], semi_a, semi_b, angle, l)
 end
 
 """
@@ -79,9 +79,9 @@ function project_population(projector::Projector)
     n = length(projector.data["xo"])
     
     projections = Dict(
-        :xy => Vector{Tuple{Float64,Float64,Float64,Float64,Float64}}(undef, n),
-        :xz => Vector{Tuple{Float64,Float64,Float64,Float64,Float64}}(undef, n),
-        :yz => Vector{Tuple{Float64,Float64,Float64,Float64,Float64}}(undef, n)
+        :xy => Vector{Tuple{Float64,Float64,Float64,Float64,Float64,Int8}}(undef, n),
+        :xz => Vector{Tuple{Float64,Float64,Float64,Float64,Float64,Int8}}(undef, n),
+        :yz => Vector{Tuple{Float64,Float64,Float64,Float64,Float64,Int8}}(undef, n)
     )
     
     ProgressMeter.@showprogress "Projecting ellipsoids..." for i in 1:n
@@ -91,10 +91,11 @@ function project_population(projector::Projector)
         a = projector.data["a"][i]
         b = projector.data["b"][i]
         c = projector.data["c"][i]
+        l = projector.data["level"][i]
         rotation = projector.data["rotation"][i]
         
         for axis in [:xy, :xz, :yz]
-            projections[axis][i] = project_ellipse_2d(xo, yo, zo, a, b, c, rotation, axis)
+            projections[axis][i] = project_ellipse_2d(xo, yo, zo, a, b, c, l, rotation, axis)
         end
     end
     
