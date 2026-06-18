@@ -45,8 +45,8 @@ def _load_yso(df, cfg):
     df[strings_ref[0]] = df.pop(cfg["columns_names_in_catalog"]["Xposition"]) * cfg["unit_conversion"]["Xposition_to_deg"]
     df[strings_ref[1]] = df.pop(cfg["columns_names_in_catalog"]["Yposition"]) * cfg["unit_conversion"]["Yposition_to_deg"]
     
-    data_frame[[strings_ref[2], strings_ref[3]]] = cfg["observation"]["beam"] / 3600.0
-    data_frame[strings_ref[4]] = 0.0
+    df[[strings_ref[2], strings_ref[3]]] = cfg["observation"]["beam"] / 3600.0
+    df[strings_ref[4]] = 0.0
     
     df[strings_ref[5]] = np.sqrt( df[strings_ref[2]] * df[strings_ref[3]] ) * 3600.0
 

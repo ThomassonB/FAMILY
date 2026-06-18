@@ -104,7 +104,8 @@ class Network:
         self.n_poly = n_poly
         self.structures = None
         self.levels = None
-        
+        self.data = list(dataset._data.values())
+
         if graph is not None:
             self.network = graph
         else:

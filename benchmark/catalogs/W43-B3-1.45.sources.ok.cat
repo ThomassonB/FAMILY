@@ -1,0 +1,128 @@
+!____________________________________________________________________________________________________________________________________________________________________
+!
+! GETSF • Multi-Scale Multi-Wavelength Source & Filament Extraction • Version 240319 • Alexander Men’shchikov, DAp IRFU CEA Saclay
+!____________________________________________________________________________________________________________________________________________________________________
+!
+! Date: 22/03/2024 Time: 22:47:25  Created by FINALCAT compiled on Mar 22 2024 17:27
+! Alexander Men'shchikov, DAp IRFU CEA Saclay, France (alexander.menshchikov@cea.fr)
+! Used CFITSIO library version  3.470 by William D Pence (william.d.pence@nasa.gov)
+! and the utility XY2SKY from WCSTOOLS by Jessica Mink (jmink@cfa.harvard.edu)
+!
+! CATALOG OF EXTRACTED SOURCES ~> ok: resorted and renumbered
+!
+! detected in 'W43.s0*.an.m.fits' (pixel: 0.25000 arcsec, size: 288 x 288 pixels)
+! combined of 'W43.1000.det.*.an.m.fits' (comboexp: 0.0, combowei: 1.0)
+! measured in 'W43.1000.obs.fits' (units: MJy/sr) (crpix1: 1.45000E+02, crpix2: 1.45000E+02, crval1: 2.8194342E+02, crval2:-1.9078639E+00)
+!____________________________________________________________________________________________________________________________________________________________________
+!
+! CONFIGURATION PARAMETERS USED BY GETSF:
+!
+! W43 100             | prefix distance ................. ! prefix for naming files (never use ~=.?), distance (pc) to objects
+! 1                   | nwmax ............{ nwmax < 100 } ! maximum number of wavelengths specified in this configuration file
+! 1 1                 | nwaves nw[i] .................... ! number of waveblengths and their indices to process
+! 1000 1.45 4.35 4.35 n ora | ........................... ! [-]wave, beam, [+]maxsize("FWHM), skmax, weight, apcorr, [+]aprad(")
+! /feynman/work/dap/lfemi/amenshch/alma_extractions/240322_nicolas/+Images/240322 ../1000 | ... ! paths to prepared images and to single-wavelength extractions
+! W43-MM1_B6_1.45.mul1.m | .............................. ! name of the observed image  (only used for measurements)
+! y n        | sources filaments ............. ! extract sources and/or filaments {y|n}
+! y 1 1 50   | separate its1 itf1 niter ...... ! separate components and backgrounds; restart iterations, niter
+! y 1 1      | flatten itsd1 itfd1 ........... ! flatten background-subtracted components; restart iterations
+! y          | complete ...................... ! complete separation and flattening
+! y          | combine ....................... ! combine decomposed structures over wavelengths
+! y 2        | detect skelsig ................ ! detect structures; minimum detection significance for skeletons
+! y 1 1 50 n | measure goodmin itn itx sproima ! measure structures; minimum goodness; iterations numbers; profile sources
+! y          | visualize ..................... ! visualize sources
+! 5          | nsigmacombos (!expert) ........ ! number of sigmas for combining sources in single scales
+! 2          | nsigmacombof (!expert) ........ ! number of sigmas for combining filaments in single scales
+! 1          | nwavesdetect .................. ! required minimum number of wavelengths for source detection
+! 2 ?        | savespace delete .............. ! space saving level {0|1|2}: clean up more files; auto delete {?|n|y}
+! 0          | verbosity ..................... ! verbosity level {0|1|2} for the screen and log file output
+!___________________________________________________________________________________________________________________________________
+!
+! TABULATED QUANTITIES, TOTAL OF 13 SOURCES
+!
+!   NO ............ Source running number ....................................
+!   S1 ............ Number of the smallest scale where source first appears ..
+!   S2 ............ Number of the largest scale where source still exists ....
+!   SX ............ Number of the footprinting scale for current source ......
+!   XCO_P ......... X-coordinate relative to the lower-left pixel (1,1) ...... (pixels)
+!   YCO_P ......... Y-coordinate relative to the lower-left pixel (1,1) ...... (pixels)
+!   WCS_ACOOR ..... WCS (J2000) alpha-coordinate of current source ........... (degrees)
+!   WCS_DCOOR ..... WCS (J2000) delta-coordinate of current source ........... (degrees)
+!   FG ............ Flag describing global properties over all wavelengths ... see definitions below
+!   SIGN .......... Global detection significance over all wavelengths ....... SIGN = sqrt ( sum ( SIGNM^2 ) )
+!   GOOD .......... Global goodness combining significance and S/N ........... GOOD = sqrt ( sum ( GOODM^2 ) )
+!   FM ............ Flag describing monochromatic properties ................. see definitions below
+!   SIGNM ......... Detection significance from monochromatic single scales .. SIGNM = SSPEAK / SSTDEV single-scale analog of S/N ratio
+!   GOODM ......... Monochromatic goodness combining significance and S/N .... GOODM = (SIGNM / SIGNM_MIN) * sqrt ( SNRP / SNRP_MIN * SNRT / SNRT_MIN ) * (BFWHM / AFWHM)
+!   FXP_BST ....... Peak intensity ........................................... (Jy/beam) conversion from MJy/sr: 5.5995E-05
+!   FXP_ERR ....... Peak intensity error ..................................... (Jy/beam) conversion from MJy/sr: 5.5995E-05
+!   FXT_BST ....... Total flux ............................................... (Jy)
+!   FXT_ERR ....... Total flux error ......................................... (Jy)
+!   FXT_ALT ....... Total flux (Gaussian) or MASS ............................ (Jy)
+!   SCALE ......... Characteristic size (FWHM) or ALPHABE .................... (arcsec)
+!   AFWHM ......... Major size at half-maximum (FWHM) ........................ (arcsec) interpolated from intensities at half-maximum
+!   BFWHM ......... Minor size at half-maximum (FWHM) ........................ (arcsec) interpolated from intensities at half-maximum
+!   ASIZE ......... Major size from intensity moments ........................ (arcsec) below half-maximum for non-Gaussian sources
+!   BSIZE ......... Minor size from intensity moments ........................ (arcsec) below half-maximum for non-Gaussian sources
+!   THETA ......... Angle of the major axis (east of vertical) ............... (degrees) position angle PA = THETA         NaN (east of north)
+!   FOFA .......... Footprint expansion or shrinkage scaling factor .......... "negative" for sources with unfinished footprints
+!   FOOA .......... Full major axis of an elliptical footprint ............... (arcsec)
+!   FOOB .......... Full minor axis of an elliptical footprint ............... (arcsec)
+!
+! DEFINITIONS AND COMMENTS:
+!
+! 1. Catalog entries may have a value of 0.000E+00 for sources outside the observational mask
+! 2. SIGNM has a special value of 9.999E-31 if a source is not visible in clean single scales
+! 3. SIGNM has a special value of 7.777E-31 if a source has deconvolved peak intensity equal zero
+! 4. FX*_BST and FX*_ERR have a special value of 9.999E-31 if their measurements are < 1.0E-30
+! 5. Monochromatic S/N ratios can be computed as SNRP = FXP_BST / FXP_ERR, SNRT = FXT_BST / FXT_ERR
+! 6. Meaning of the global flag FG:
+!     FG = 0 ..... source is isolated: not blended with any other source in any waveband
+!     FG = 1 ..... source is blended: footprints intersect by more than 20% in at least one waveband
+!     FG = 2 ..... source is sub-structured: its footprint area contains at least one other source
+!     FG = 3 ..... source is sub-structuring: causing a larger source to be sub-structured
+! 7. Meaning of the monochromatic flag FM: <~ "negative" when deblending iterations did not converge
+!     FM =   0 ... source has no problems identified in waveband
+!     FM =   1 ... source sizes are suspicious: sqrt ( AFWHM * BFWHM ) / BEAM < 0.95 or AFWHM / ASIZE > 1.4 or BFWHM / BSIZE > 1.4
+!     FM =   2 ... source is larger than the desired maximum size: sqrt ( FOOA * FOOB ) / FOFA > SRCMAXSIZE = 4.3 arcsec
+!     FM =   4 ... source is too much elongated: AFWHM / BFWHM > 2 or AFWHM / FOOA is too close to 1.
+!     FM =  10 ... source peak intensity is not measurable: FXP_BST / FXP_ERR < 2
+!     FM =  20 ... source total flux is not measurable: FXT_BST / FXT_ERR < 2
+!     FM =  40 ... source peak intensity FXP_BST < 0 or FXP_BST and total flux FXT_BST have opposite signs
+!     FM = 100 ... source is sub-structured: its footprint area contains at least one mesurable source
+!  _______________________________________________________________________________
+! |                                                                               |
+! | *!*( SOURCES FROM MULTI-WAVELENGTH CATALOGS SHOULD NEVER BE USED BLINDLY )*!* |
+! |                                                                               |
+! |  Select only sufficiently good sources in each waveband, on the basis of the  |
+! |  quantities provided: SIGNM, GOODM, FM, FXP_BST / FXP_ERR, FXT_BST / FXT_ERR, |
+! |  AFWHM / BFWHM, FOOA / AFWHM, etc.                                            |
+! |                                                                               |
+! | *!*(   RECOMMENDED OPTIMAL SELECTION CRITERIA BASED ON BENCHMARK TESTS   )*!* |
+! |                                                                               |
+! |      abs ( GOODM ) > 1  &  abs ( SIGNM ) > 1  &  FXP_BST / FXP_ERR > 2  &     |
+! |      FXT_BST / FXT_ERR > 2  &  AFWHM / BFWHM < 2  &  FOOA / AFWHM > 1.15      |
+! |_______________________________________________________________________________|
+!
+!____________________________________________________________________________________________________________________________________________________________________
+!
+!                                                                                                                                                                           1000 µm
+!                                                                                   .____________________________________________________________________________________________________________________________________________________________________________________.
+!
+!    1  2  3  4       5       6         7            8      9      10         11       12      13         14         15         16         17         18         19         20         21         22         23         24         25         26         27         28
+!  getsf  Nb  s1  s2  sx  xco_p  yco_p  wcs_a  wcs_d  fg  sign  good  fm3mmBsens  signm3mmBsens  goodm3mmBsens  fxp3mmBsens  fxp_err3mmBsens  fxt3mmBsens  fxt_err3mmBsens  fxt_al3mmBsens  scale3mmBsens  afwhm3mmBsens  bfwhm3mmBsens  asize3mmBsens  bsize3mmBsens  theta3mmBsens  fofa3mmBsens  fooa3mmBsens  foob3mmBsens
+!   NO S1 S2 SX    XCO_P   YCO_P   WCS_ACOOR    WCS_DCOOR  FG     SIGN       GOOD    FM01   SIGNM01    GOODM01   FXP_BST01  FXP_ERR01  FXT_BST01  FXT_ERR01  FXT_ALT01   SCALE01    AFWHM01    BFWHM01    ASIZE01    BSIZE01    THETA01    FOFA01     FOOA01     FOOB01
+!
+     1  2 61 26    109.4   151.3  281.9458872   -1.9074241  0  3.533E+02  6.916E+02     0  3.533E+02  6.916E+02  5.358E-02  2.523E-03  8.334E-02  2.568E-03  8.500E-02  1.450E+00  2.139E+00  1.595E+00  2.026E+00  1.481E+00  1.003E+02  3.000E+00  4.508E+00  4.350E+00
+     2  2 61 26    118.8   141.0  281.9452371   -1.9081417  0  2.041E+02  1.977E+02     0  2.041E+02  1.977E+02  3.039E-02  2.940E-03  3.575E-02  2.283E-03  3.638E-02  1.450E+00  1.877E+00  1.429E+00  1.638E+00  1.314E+00  9.666E+01  2.311E+00  3.405E+00  3.351E+00
+     3  2 61 19    148.0   124.8  281.9432082   -1.9092701  1  8.739E+01  1.968E+02     0  8.739E+01  1.968E+02  2.135E-02  7.800E-04  2.657E-02  6.218E-04  2.665E-02  1.450E+00  2.064E+00  1.359E+00  1.795E+00  1.270E+00  7.963E+01  2.311E+00  3.586E+00  3.351E+00
+     4 10 61 26    137.5   165.6  281.9439346   -1.9064308  0  5.756E+01  7.462E+01     0  5.756E+01  7.462E+01  8.685E-03  7.621E-04  1.481E-02  8.067E-04  1.435E-02  1.450E+00  1.985E+00  1.779E+00  1.969E+00  1.846E+00  6.602E+01  3.166E+00  4.621E+00  4.591E+00
+     5 14 50 50    160.1   124.9  281.9423657   -1.9092615  1  3.154E+01  2.309E+01     1  3.154E+01  2.309E+01  8.819E-03  5.700E-04  1.156E-02  8.908E-04  1.325E-02  2.952E+00  2.474E+00  1.278E+00  2.500E-01  2.500E-01  8.751E+01  2.311E+00  7.045E+00  6.557E+00
+     6 16 61 26    137.5   129.5  281.9439378   -1.9089403  0  2.049E+01  1.841E+01     0  2.049E+01  1.841E+01  1.033E-02  9.967E-04  1.682E-02  7.807E-04  1.764E-02  1.450E+00  2.717E+00  1.634E+00  1.983E+00  1.267E+00  7.734E+01  2.311E+00  3.466E+00  3.351E+00
+     7 10 61 26     93.5   139.5  281.9469950   -1.9082458  0  4.432E+01  1.065E+01     1  4.432E+01  1.065E+01  6.254E-03  1.481E-03  6.205E-03  1.148E-03  5.055E-03  1.450E+00  1.859E+00  1.131E+00  1.564E+00  6.890E-01  9.033E+01  2.311E+00  3.393E+00  3.351E+00
+     8 12 61 26    125.5   132.7  281.9447716   -1.9087204  0  3.239E+01  7.546E+00     1  3.239E+01  7.546E+00  6.904E-03  2.222E-03  8.428E-03  1.720E-03  9.723E-03  1.450E+00  2.380E+00  1.421E+00  1.896E+00  1.011E+00  6.464E+01  2.311E+00  3.386E+00  3.351E+00
+     9 20 61 26    122.2   193.8  281.9450032   -1.9044727  0  1.579E+01  7.311E+00     0  1.579E+01  7.311E+00  2.758E-03  4.621E-04  3.341E-03  3.571E-04  2.060E-03  1.450E+00  1.610E+00  1.306E+00  1.522E+00  1.214E+00  5.438E+01  2.311E+00  3.372E+00  3.351E+00
+    10 25 61 29    112.0   206.3  281.9457096   -1.9036079  0  9.342E+00  2.913E+00     0  9.342E+00  2.913E+00  1.647E-03  3.373E-04  1.951E-03  2.610E-04  1.166E-03  1.450E+00  1.727E+00  1.218E+00  1.506E+00  1.144E+00  8.564E+01  2.311E+00  3.381E+00  3.351E+00
+    11 27 61 29    243.2   106.8  281.9365957   -1.9105143  0  7.414E+00  1.856E+00     1  7.414E+00  1.856E+00  1.350E-03  2.819E-04  1.363E-03  2.187E-04  1.001E-03  1.450E+00  1.879E+00  1.119E+00  1.539E+00  4.868E-01  7.229E+01  2.311E+00  3.400E+00  3.351E+00
+    12 28 61 29    242.7    77.5  281.9366305   -1.9125514  0  7.391E+00  1.748E+00    10  7.391E+00  1.748E+00  1.129E-03  5.723E-04  1.722E-03  4.413E-04  1.842E-03  1.450E+00  2.163E+00  1.843E+00  1.708E+00  1.448E+00  7.433E+01  2.311E+00  3.357E+00  3.351E+00
+    13 27 61 29    212.7   110.4  281.9387117   -1.9102647  0  7.541E+00  1.486E+00     1  7.541E+00  1.486E+00  1.271E-03  3.532E-04  9.795E-04  2.739E-04  1.231E-03  1.450E+00  1.978E+00  1.087E+00  2.500E-01  2.500E-01  8.843E+01  2.311E+00  3.396E+00  3.351E+00
