@@ -1,3 +1,47 @@
+"""
+uncertainty.py
+==============
+
+Synthetic population generator and projector for hierarchical fragmentation
+uncertainty estimation in star-forming regions.
+
+This module implements a Monte Carlo pipeline to assess observational biases
+introduced by the 2D projection of 3D hierarchically fragmented structures
+(e.g., clumps, cores, filaments in molecular clouds). It is part of the FAMILY
+(Fragmentation Analysis Multi-scale In hYerachical structures) analysis framework.
+
+Workflow overview
+-----------------
+1. A population of 3D ellipsoidal structures is generated hierarchically via
+   ``Generator``, following user-defined fragmentation rates (phi_3D) and
+   size scaling ratios. Children are placed inside parents using probabilistic
+   coordinate and discrete fragmentation models (``statfrag`` module).
+
+2. The 3D population is projected onto 2D planes via ``Projector``, which
+   extracts convex-hull polygons from each ellipsoid's projected contour and
+   merges overlapping objects to simulate beam or resolution blending effects.
+
+3. The projected population can be rendered as a column-density-like map via
+   ``Mapper``, which sums 3D Gaussian kernels and integrates along one axis.
+
+4. Helper functions allow saving/loading populations to/from CSV files, and
+   a ``phi`` function converts observed child-to-parent number ratios into
+   fragmentation indices.
+
+The comparison between 3D fragmentation numbers and their 2D projected
+counterparts provides a statistical correction factor for the observed
+fragmentation rate, accounting for projection and blending biases.
+
+References
+----------
+See the FAMILY pipeline documentation and the associated publication for the
+physical motivation and calibration of these models.
+
+Dependencies
+------------
+numpy, scipy, shapely, networkx, pandas, tqdm, polygons_utility, statfrag
+"""
+
 from copy import deepcopy
 from sys import getsizeof
 import numpy as np
@@ -14,7 +58,27 @@ import pandas as pd
 
 from tqdm import tqdm
 
+
 def rotateEllipsoid(coords, rotation):
+    """Apply a 3D rotation matrix to a set of coordinates.
+
+    Reshapes the input coordinate array into a (3, N) matrix of N 3D points,
+    then applies the rotation via matrix multiplication.
+
+    Parameters
+    ----------
+    coords : array-like
+        Flat or nested array of coordinates. Will be ravelled and reshaped
+        into a (3, N) array where N = total_elements // 3.
+    rotation : array-like, shape (3, 3)
+        Rotation matrix to apply (e.g., from Euler angles via
+        ``scipy.spatial.transform.Rotation``).
+
+    Returns
+    -------
+    numpy.ndarray, shape (3, N)
+        Rotated coordinates.
+    """
     arr = np.ravel(coords)
     arr = np.reshape(arr, (3, len(arr)//3))
     return np.matmul(rotation, arr)

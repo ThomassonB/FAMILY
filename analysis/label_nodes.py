@@ -1,3 +1,33 @@
+"""
+label_nodes.py
+==============
+Utility functions to classify and annotate nodes within a hierarchical
+multi-scale network built from astrophysical source catalogs.
+
+In this framework, each node of the network corresponds to a detected
+compact source (clump/core/structure) at a given angular resolution
+(observation scale / beam size). Directed edges connect sources across
+consecutive resolution levels when a significant spatial overlap is
+detected, encoding the parent-child hierarchical relationship between
+structures observed at different scales.
+
+Node classification is based on the in-degree and out-degree of each
+node in the directed graph:
+
+  - SOURCE      : no parent (indegree = 0), has children  -> top-level structure
+  - SINK        : has parent(s), no children (outdegree = 0) -> leaf structure
+  - INTERMEDIATE: has both parents and children           -> nested structure
+  - ISOLATED    : no connections at all                   -> unrelated structure
+  - VIRTUAL     : artificially inserted node used to fill
+                  missing detection gaps between levels
+                  (see ``network_utility.virtualNodes``)
+
+These labels, together with the hole count and fractality measure,
+are used to characterise the hierarchical fragmentation of
+star-forming regions (e.g. NGC 2264) observed at multiple wavelengths
+and angular resolutions.
+"""
+
 import networkx as nx
 import numpy as np
 
@@ -16,6 +46,36 @@ from enum import Enum
 ############################################################
 
 class NodeKind(Enum):
+    """
+    Enumeration of topological roles for nodes in the multi-scale network.
+
+    Each source detected at a given resolution is assigned one of the
+    following kinds based on its connectivity in the directed graph,
+    where edges go from coarser (parent) to finer (child) resolution levels.
+
+    Attributes
+    ----------
+    VIRTUAL : int
+        Placeholder node artificially inserted to represent a missing
+        detection at an intermediate scale. Used to correct for
+        observational incompleteness when estimating fractality.
+    SOURCE : int
+        Node with no incoming edges (indegree = 0) but at least one
+        outgoing edge. Represents a top-level structure with no
+        detected parent at a coarser scale.
+    SINK : int
+        Node with at least one incoming edge but no outgoing edges
+        (outdegree = 0). Represents a leaf structure with no detected
+        children at finer scales.
+    INTERMEDIATE : int
+        Node with both incoming and outgoing edges. Represents a
+        structure nested within a coarser-scale parent and itself
+        containing finer-scale children.
+    ISOLATED : int
+        Node with neither incoming nor outgoing edges. Represents a
+        structure with no detected hierarchical relationship to any
+        other source in the network.
+    """
     VIRTUAL = 0
     SOURCE = 1
     SINK = 2
