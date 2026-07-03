@@ -1,0 +1,40 @@
+[dataset]
+name = "24300AU" # arbitrary name of the catalog to identify it
+
+[objects]
+type  = 0 # 0 = ellipses, 1 = yso ; -1 = polygons
+comment = "" # additional information on the objects
+
+[files]
+catalog    = "./benchmark/catalogs/ramses.s.sources.ok.beam24300au.cat"
+fits_img   = "./benchmark/fits/column_density_01500_z.+.noise.mul1e23.r24300au.bor-1884.rs8100au.fits" # .fits from which the objects are extracted
+
+[columns_names_in_catalog]
+# for non polygons objects
+Xposition       = "WCS_ACOOR"
+Yposition       = "WCS_DCOOR"
+SemiMajorAxis   = "AFWHM01"
+SemiMinorAxis   = "BFWHM01"
+PosAngle        = "THETA01"
+Mass            = "FXT_BST01"
+Class           = "Class" # for ysos
+
+polygons = "some/path/"
+
+[unit_conversion]
+n_sigma                 = 0.8493218 # number of sigma to take when defining the extent of your (supposed gaussian) structures
+
+Xposition_to_deg        = 1 # if columns not in degree, put the conversion factor here
+Yposition_to_deg        = 1
+SemiMajorAxis_to_deg    = 0.0002777777777777778 # if colums is Full Width at Half Maximum, divide the conversion factor by 2
+SemiMinorAxis_to_deg    = 0.0002777777777777778
+PosAngle_to_rad         = -0.0174533 # if angle not in rad, put the conversion factor here
+PosAngle_offset         = 1.5707963267948966 # if axis of reference is not X, put the offset (rad) here
+Mass_to_Msun            = 1 # if columns not in Msun, put the conversion factor here
+
+[observation]
+beam       = 4.5 # in arcsec
+wavelength = 1000 # in µm
+distance   = 5400 # pc
+fov_window = -1 # a path to a file containing the extraction field of view associated to the catalog (polygons)
+# if -1, fov is the full image
