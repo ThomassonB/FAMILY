@@ -799,10 +799,12 @@ class Tables:
             getattr(self.root, name).bind('<<ComboboxSelected>>', self.select_from_filters)
 
         # Populate the tree view with all columns.
-        self.tree["columns"] = list(self.df_structures)
+        self.tree["columns"] = ['index'] + list(self.df_structures)
         self.tree.pack(expand=tk.TRUE, fill=tk.BOTH)
         self.Hbar.pack(side=tk.BOTTOM, fill='x')
 
+        self.tree.column('index', width=40, anchor="w")
+        self.tree.heading('index', text='index', anchor="w")
         for i in sorted(self.df_structures):
             self.tree.column(i, width=40, anchor="w")
             self.tree.heading(i, text=i, anchor="w")
@@ -811,7 +813,7 @@ class Tables:
         # the list of node IDs for compact display.
         for i, row in self.df_structures.iterrows():
             row['component'] = list(row['component'].nodes)
-            self.tree.insert("", "end", text=i, values=list(row))
+            self.tree.insert("", "end", text=i, values=[i] + list(row))
 
     def select_from_filters(self, event):
         """Re-populate the table with only the rows that match all active filters.
@@ -837,4 +839,4 @@ class Tables:
         for i, row in self.df_structures.iterrows():
             if all_filter(row):
                 row['component'] = list(row['component'].nodes)
-                self.tree.insert("", "end", values=list(row))
+                self.tree.insert("", "end", values=[i] + list(row))
