@@ -31,7 +31,7 @@ class DataSet:
 
     def add(self, data):
         if data.name in self:
-            raise ValueError(f"Nom déjà présent : {data.name}")
+            raise ValueError(f"[WARNING] Name already used : {data.name}\n[WARNING] from {data.catalog}")
         self._data[data.name] = data
 
     def get(self, name):
@@ -104,6 +104,7 @@ class Network:
         self.n_poly = n_poly
         self.structures = None
         self.levels = None
+        self.data = dataset
         
         if graph is not None:
             self.network = graph
@@ -200,7 +201,7 @@ class Network:
     def extractStructures(self):
         from . import multiscale_structures as ms
         self.structures = list(ms.getStructures(self.network))
-        return self.structures  
+        #return self.structures  
 
     def getStructuresTable(self):
         if hasattr(self, "structures"):

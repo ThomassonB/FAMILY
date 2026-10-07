@@ -1,6 +1,6 @@
 # Configuration file for 3D Ellipsoid Fragmentation Simulation
 [simulation]
-n_initial_parents = 10			# Number of initial parent ellipsoids
+n_initial_parents = 1000			# Number of initial parent ellipsoids
 initial_volume_range = 10.0		# Initial volume size for parent placement
 n_vertices = 32					# Number of vertices for contour representation
 overlap_threshold = 0.75		# Overlap threshold for child placement (fraction of volume)

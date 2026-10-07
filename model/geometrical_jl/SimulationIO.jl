@@ -116,7 +116,7 @@ end
 
 function set_scaling_ratios(config::Config)
     if config.scale_method == "ratio"
-        scaling_ratios = fill(config.scaling_ratio, config.n_levels)
+        scaling_ratios = fill(config.scaling_ratio, config.n_levels-1)
     elseif config.scale_method == "list" && !isnothing(config.scale_list)
         # Convert scale list to ratios
         scaling_ratios = [config.scale_list[i] / config.scale_list[i+1] 

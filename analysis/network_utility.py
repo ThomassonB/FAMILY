@@ -118,7 +118,7 @@ def fractality(graph, eta=2):
                 #print("gamma = ", gamma)
                 #print("N = ", N)
                 #print("x = ", sol.x)
-
+    
 def virtualNodes(graph, levels):
     """
     Create a copy of graph and fill the holes with virtual nodes. Virtual edges are added to connect the components.

@@ -304,18 +304,21 @@ Collect all ellipsoid parameters into arrays for export.
 """
 function collect_ellipsoid_data(ellipsoids::Vector{Ellipsoid})
     n = length(ellipsoids)
-    
-    data = Dict(
-        "xo" => [e.xo for e in ellipsoids],
-        "yo" => [e.yo for e in ellipsoids],
-        "zo" => [e.zo for e in ellipsoids],
-        "a" => [e.a for e in ellipsoids],
-        "b" => [e.b for e in ellipsoids],
-        "c" => [e.c for e in ellipsoids],
-        "level" => [e.level for e in ellipsoids],
-        "volume" => [e.volume for e in ellipsoids],
-        "rotation" => [e.rotation for e in ellipsoids]
+
+    fields = (:xo, :yo, :zo, :a, :b, :c, :level, :volume, :rotation, :children)
+
+    T = eltype(ellipsoids)
+    data = Dict{String, Any}(
+        String(f) => Vector{fieldtype(T, f)}() for f in fields
     )
+    #data["children"] = Int[]
+    
+    for e in ellipsoids
+        for f in fields
+            push!(data[String(f)], getproperty(e, f))
+        end
+        #push!(data["children"], length(e.children))
+    end
     
     return data
 end
