@@ -240,6 +240,11 @@ function merge_overlap(ellipses; npoints=128)
     end
 end
 
+function polygon_xy(polygon)
+    points = GI.coordinates(polygon)[1]
+    return first.(points), getindex.(points, 2)
+end
+
 """
 Count ellipsoids by level in 3D and 2D projections.
 """

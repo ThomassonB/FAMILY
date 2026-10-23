@@ -162,9 +162,9 @@ function create_child_candidates(parent::Ellipsoid, size::Float64, limit::Int)
     gir = Random.rand(Distributions.Uniform(0, 90), limit)
     
     # Generate positions in parent's coordinate system
-    xo = (2Random.rand(limit) .- 1) .* a
-    yo = (2Random.rand(limit) .- 1) .* b
-    zo = (2Random.rand(limit) .- 1) .* c
+    xo = (2Random.rand(limit) .- 1) .* parent.a
+    yo = (2Random.rand(limit) .- 1) .* parent.b
+    zo = (2Random.rand(limit) .- 1) .* parent.c
     
     # Transform to absolute coordinates
     positions = parent.rotation * vcat(xo', yo', zo')
@@ -184,36 +184,40 @@ function place_children!(parent::Ellipsoid, n_children::Int, gen::Generator, lev
     end
     
     size = 1.0 / gen.scaling_ratios[level]^level
-    sep = size^2
+    # sep = size^2
     
     # Minimum radial distance for packing
-    rmin = (n_children != 1) ? sep / 2 : 0.0
+    rmin_sq = (n_children != 1) ? size^2 : 0.0
     
-    count = 0
-    max_iterations = gen.max_attempts
-    candidate_idx = gen.max_attempts
+    candidate_idx = 1
+    # max_iterations = gen.max_attempts
+    # candidate_idx = 0
     xo, yo, zo, a, b, c, prec, nut, gir = create_child_candidates(parent, size, gen.max_attempts)
     
-    while length(parent.children) < n_children && count < max_iterations
+    while length(parent.children) < n_children && candidate_idx < gen.max_attempts
         # Generate new candidates if needed
-        if candidate_idx >= gen.max_attempts
-            xo, yo, zo, a, b, c, prec, nut, gir = create_child_candidates(parent, size, gen.max_attempts)
-            candidate_idx = 0
-        end
+        # if candidate_idx >= gen.max_attempts
+        #    xo, yo, zo, a, b, c, prec, nut, gir = create_child_candidates(parent, size, gen.max_attempts)
+        #    candidate_idx = 0
+        # end
 
-        candidate_idx += 1
-        if candidate_idx > gen.max_attempts
-            count += 1
-            continue
+        # candidate_idx += 1
+        if length(parent.children) == 0 && candidate_idx > gen.max_attempts - 500
+            # create one in the center
+            rmin_sq = 0
+            ro_sq = 0
+            xo[candidate_idx] = parent.xo
+            yo[candidate_idx] = parent.yo
+            zo[candidate_idx] = parent.zo
+        else
+            # Check radial exclusion
+            ro_sq = (xo[candidate_idx] - parent.xo)^2 + 
+                    (yo[candidate_idx] - parent.yo)^2 + 
+                    (zo[candidate_idx] - parent.zo)^2
         end
         
-        # Check radial exclusion
-        ro_sq = (xo[candidate_idx] - parent.xo)^2 + 
-                (yo[candidate_idx] - parent.yo)^2 + 
-                (zo[candidate_idx] - parent.zo)^2
-        
-        if ro_sq < rmin^2
-            count += 1
+        if ro_sq < rmin_sq
+            candidate_idx += 1
             continue
         end
         
@@ -227,7 +231,7 @@ function place_children!(parent::Ellipsoid, n_children::Int, gen::Generator, lev
 
         # Check if child is within parent
         if !within(child, parent; minimum=gen.overlap_threshold)
-            count += 1
+            candidate_idx += 1
             continue
         end
         
@@ -244,7 +248,7 @@ function place_children!(parent::Ellipsoid, n_children::Int, gen::Generator, lev
             push!(parent.children, child)
         end
         
-        count += 1
+        candidate_idx += 1
     end
     
     #if length(parent.children) < n_children
@@ -279,11 +283,14 @@ function build_population!(gen::Generator; verbose=true)
             n_ceil = ceil(Int, avg_children)
             p_ceil = avg_children - n_floor
             
-            n_children = Random.rand() < p_ceil ? n_ceil : n_floor
+            n_children = (Random.rand() < p_ceil) ? n_ceil : n_floor
+            #println("nchildren :$n_children")
             
             # Place children
             place_children!(parent, n_children, gen, level)
-            
+
+            #nplaced = length(parent.children)
+            #println("nplaced :$nplaced")
             # Add to next level
             append!(next_level, parent.children)
         end

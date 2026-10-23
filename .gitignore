@@ -1,3 +1,5 @@
 *.ipynb_check*
 *.jupy*
 *.old.*
+./htmlcov
+.coverage

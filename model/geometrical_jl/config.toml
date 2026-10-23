@@ -1,7 +1,7 @@
 # Configuration file for 3D Ellipsoid Fragmentation Simulation
 [simulation]
-n_initial_parents = 1000			# Number of initial parent ellipsoids
-initial_volume_range = 10.0		# Initial volume size for parent placement
+n_initial_parents = 25			# Number of initial parent ellipsoids
+initial_volume_range = 20.0		# Initial volume size for parent placement
 n_vertices = 32					# Number of vertices for contour representation
 overlap_threshold = 0.75		# Overlap threshold for child placement (fraction of volume)
 hard_objects = 1e-3				# Hard sphere exclusion parameter
@@ -19,7 +19,7 @@ model = "constant"	# Fragmentation model: "constant" or "function"
 
 # For "constant" model: fragmentation rate (power-law exponent / scale-free)
 # Number of children = ratio^fragmentation_rate
-fragmentation_rate = 0.5
+fragmentation_rate = 1
 
 # For "function" model: custom function parameters (example)
 # fragmentation_function = "level -> 1.1 + 0.1 * level"
