@@ -1,0 +1,9 @@
+matplotlib==3.4.3\
+numpy==1.20.2\
+pandas==1.2.0\
+scipy==1.6.0\
+shapely==1.7.1\
+networkx==2.5\
+astropy==4.2\
+aplpy==2.0.3\
+lmfit==1.0.1}

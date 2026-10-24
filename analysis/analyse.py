@@ -13,6 +13,23 @@ import time
 
 import matplotlib.pyplot as plt
 
+from pathlib import Path
+import shutil
+
+CONFIG_TEMPLATE = Path(__file__).resolve().parent / "template_input.toml"
+
+def create_files(path_str):
+    file = Path(path_str)
+    file.mkdir(parents=True, exist_ok=True)
+
+    for name in ("config", "catalogs", "fits"):
+        (file / name).mkdir(exist_ok=True)
+        
+    destination = file / "config"
+    shutil.copy2(CONFIG_TEMPLATE, destination)
+
+    return (file / "config").resolve()
+    
 class DataSet:
     def __init__(self, items=None):
         self._data = {}
@@ -162,7 +179,7 @@ class Network:
         
         G = nx.DiGraph()
 
-        polygons = [putility.buildPolygons(d.df, N=self.n_poly) for d in data]
+        polygons = [putility.buildPolygons(d.df, obj_type=d.type, N=self.n_poly) for d in data]
 
         catalogs = [d.df for d in data]
         bf.addNodes(G, catalogs, polygons)
