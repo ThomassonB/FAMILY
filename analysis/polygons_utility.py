@@ -36,10 +36,21 @@ def reshape_coord_for_poly_vec(x, y):
     coords = np.dstack((x, y))
     return coords
 
-def buildPolygons(catalog, N=128):
-    args = np.array([catalog[label].to_numpy()[:, np.newaxis] for label in ellipse_params_labels])
-    x, y = ellipse(*args, N=N)
-    coords = reshape_coord_for_poly_vec(x, y)
+def buildPolygons(catalog, obj_type, N=128):
+    from .load import ObjectType
+    
+    if obj_type in (ObjectType.ELLIPSE, ObjectType.YSO):
+        args = np.array([catalog[label].to_numpy()[:, np.newaxis] for label in ellipse_params_labels])
+        x, y = ellipse(*args, N=N)
+        coords = reshape_coord_for_poly_vec(x, y)
+
+    elif obj_type == ObjectType.POLYGON:
+        x, y = catalog[ellipse_params_labels[0]], catalog[ellipse_params_labels[1]]
+        coords = []
+        for xx, yy in zip(x, y):
+            xx = np.asarray(xx, dtype=float)
+            yy = np.asarray(yy, dtype=float)
+            coords.append(np.dstack((xx, yy))[0])
 
     """
     old script for polygons instead of ellipses parameters
