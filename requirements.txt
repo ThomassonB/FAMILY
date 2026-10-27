@@ -7,4 +7,6 @@ networkx
 astropy
 aplpy
 lmfit
+h5py
 jupyterlab
+ipywidgets

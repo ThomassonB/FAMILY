@@ -51,13 +51,15 @@ The `benchmark` folder contains benchmark data used for the tutorial. It also co
 
 Clone this repository:
 
-`git clone https://https://github.com/ThomassonB/FAMILY.git`
+`git clone https://github.com/ThomassonB/FAMILY.git`
 
 Create a virtual environment and install the dependencies :
 
-`python3 -m venv FAMILY_venv
-source FAMILY_venv/bin/activate
-python3 -m pip install -r requirements.txt`
+`cd FAMILY`
+`python3 -m venv FAMILY_venv`
+`source ./FAMILY_venv/bin/activate`
+`python3 -m pip install --upgrade pip`
+`python3 -m pip install -r ./requirements.txt`
 
 You can then launch the Tutorial notebook by running :
 
@@ -67,9 +69,8 @@ You can then launch the Tutorial notebook by running :
 
 Install Julia first (https://julialang.org/).
 
-`
-cd ./benchmark/simulation
-julia --project=. -e 'using Pkg; Pkg.instantiate()'`
+`cd ./benchmark/simulation`
+`julia --project=. -e 'using Pkg; Pkg.instantiate()'`
 
 Then you can open a jupyter lab and select a Julia kernel to play with the notebooks
 
