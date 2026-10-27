@@ -9,7 +9,7 @@ FAMILY is a framework designed to analyse multiscale gaseous structures and thei
 
 This repository is intended for the study of hierarchical structure formation and fragmentation in astrophysical gaseous systems. 
 
-> ## Project status - Early public version (`v0.1.0`).  
+> ## Project status - Early public version (`v0.9.0`).  
 
 > This repository is currently being reorganized and documented.  
 > Some sections (including project information, usage tutorials, requirements, and installation instructions) are still incomplete or subject to revision.
@@ -24,7 +24,7 @@ This repository is intended for the study of hierarchical structure formation an
 
 ## General Info
 
-Version **v0.1.0**
+Version **v0.9.0**
 
 ## License
 
@@ -34,24 +34,49 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ### Tool
 
-The FAMILY framework for building parentality relationships is available in the `MultiFrag` folder.  
+The FAMILY framework for building parentality relationships is available in the `analysis` folder.  
 Function **x** is doing this and that
 
 ### Model
 
 The theoretical model used to compare the parentality results is available in the `model` folder.
 
+### [Optional] Benchmark simulation
+
+The `benchmark` folder contains benchmark data used for the tutorial. It also contains in `benchmark/simulation` Monte Carlo code simulations and that randomly sample ellipses to estimate uncertainties, assess projection effects, and generate test data. The code was originally written in Python but was rewritten in Julia to improve performance. This code is optional, unless you want to rebuild specific samples.
+
 ## Installation
+
+### FAMILY Tool
 
 Clone this repository:
 
-`git clone https://github.com//.git`
+`git clone https://https://github.com/ThomassonB/FAMILY.git`
+
+Create a virtual environment and install the dependencies :
+
+`python3 -m venv FAMILY_venv
+source FAMILY_venv/bin/activate
+python3 -m pip install -r requirements.txt`
+
+You can then launch the Tutorial notebook by running :
+
+`jupyter lab ./Tutorial.ipynb`
+
+### [Optional] Benchmark
+
+Install Julia first (https://julialang.org/).
+
+`
+cd ./benchmark/simulation
+julia --project=. -e 'using Pkg; Pkg.instantiate()'`
+
+Then you can open a jupyter lab and select a Julia kernel to play with the notebooks
+
+`jupyter lab`
 
 ## Related Papers
 
 Thomasson et al. 2022, Astronomy and Astrophysics, 665, A119. doi:10.1051/0004-6361/202243275
 
 Thomasson et al. 2024, Astronomy and Astrophysics, 689, A133. doi:10.1051/0004-6361/202449649
-
-Thomasson et al. 2022, Astronomy and Astrophysics, arXiv, arXiv:2602.03976. doi:10.48550/arXiv.2602.03976
-

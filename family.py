@@ -43,35 +43,13 @@ def main():
     structure_table = network.getStructuresTable()
 
     # Phi measurement
-    fractalities = [struct.fractality for struct in network.structures]
-    print(f"Mean : {np.mean(fractalities)}\nMedian : {np.median(fractalities)}")
+    fractality, delta_fractality = fm.compute_fractality(network)
+    print(f"Fractality : {fractality:.3f} +/- {delta_fractality:.3f}")
     
-    fractalities = [struct.fractality for struct in network.structures if struct.mode.name == "HIERARCHICAL"]
-    print(f"Mean (Hierarchical only) : {np.mean(fractalities)}\nMedian (Hierarchical only) : {np.median(fractalities)}")
-
-    # uncertainties
-    # missing nodes
-    virtual = utility.virtualNodes(network.network, network.levels)
-    network_filled = analyse.Network(network.data, min_overlap=network.min_overlap, graph=virtual)
-    utility.fractality(network_filled.network)
-    
-    network_filled.extractStructures()
-    
-    fractalities = [struct.fractality for struct in network.structures if struct.mode.name == "HIERARCHICAL"]
-    fractalities_filled = [struct.fractality for struct in network_filled.structures if struct.mode.name == "HIERARCHICAL"]
-    
-    print("median with virtual nodes", np.median(fractalities))
-    print("median without virtual nodes", np.median(fractalities_filled))
-
-    # phi 2D
-    f_up = np.median(fractalities_filled)
-    f_low = np.median(fractalities)
-    
-    fractality, delta_fractality = fm.estimated_f(f_up, f_low)
-    phi2D = fm.phi2D(fractality)
-    delta_phi2D = fm.delta_phi2D(fractality, delta_fractality)
-    
-    print(f"Fragmentation rate in 2D : {phi2D}+/-{delta_phi2D}")
+    # or if you want directly the 2D fragmentation rate :
+    # fm.compute_phi2d(network, mode="legacy")
+    phi2D, delta_phi2D = fm.compute_phi2d(network)
+    print(f"Fragmentation rate in 2D : {phi2D:.3f} +/- {delta_phi2D:.3f}")
 
     # phi 3D
     relative_error = 1

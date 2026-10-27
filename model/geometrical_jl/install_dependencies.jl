@@ -28,7 +28,8 @@ packages = [
     "JSON",
     "Plots",
     "Trapz",
-    "FITSIO"
+    "FITSIO",
+    "IJulia"
 ]
 
 println("Packages to install:")
