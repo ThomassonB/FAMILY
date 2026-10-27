@@ -53,7 +53,7 @@ Clone this repository:
 
 `git clone https://github.com/ThomassonB/FAMILY.git`
 
-Create a virtual environment and install the dependencies :
+It is preferable that you create a virtual environment and install the dependencies :
 
 `cd FAMILY`<br>
 `python3 -m venv FAMILY_venv`<br>
@@ -61,19 +61,18 @@ Create a virtual environment and install the dependencies :
 `python3 -m pip install --upgrade pip`<br>
 `python3 -m pip install -r ./requirements.txt`
 
+The commands may vary depending on your operating system and Python executable. Adjust them as needed.
 You can then launch the Tutorial notebook by running :
 
 `jupyter lab ./Tutorial.ipynb`
 
 ### [Optional] Benchmark
 
-Install Julia first (https://julialang.org/).
+Install Julia first (https://julialang.org/). The code works on Julia 1.13.
 
 `julia --project=./benchmark/simulation -e 'using Pkg; Pkg.instantiate()'`
 
-Then you can open a jupyter lab and select a Julia kernel to play with the notebooks
-
-`jupyter lab`
+Then you can open a jupyter lab and select a Julia kernel to play with the notebooks located in `./benchmark/simulation`.
 
 ## Related Papers
 
