@@ -9,12 +9,11 @@ FAMILY is a framework designed to analyse multiscale gaseous structures and thei
 
 This repository is intended for the study of hierarchical structure formation and fragmentation in astrophysical gaseous systems. 
 
-> ## Project status - Early public version (`v0.9.0`).  
+## Project status - public version (`v1.0.0`).  
 
-> This repository is currently being reorganized and documented.  
-> Some sections (including project information, usage tutorials, requirements, and installation instructions) are still incomplete or subject to revision.
+> This repository can be used by researchers to investigate the parentality between gas structures and stars in molecular clouds.  
+> If you encounter a problem, please open an issue in this GitHub repository. If you would like to fix a bug or contribute, feel free to fork the project and submit a pull request.
 
-> They will be clarified and expanded in upcoming updates of the repository.
 
 ## Table of Contents
 1. [General Info](#general-info)
@@ -24,7 +23,7 @@ This repository is intended for the study of hierarchical structure formation an
 
 ## General Info
 
-Version **v0.9.0**
+Version **v1.0.0**
 
 ## License
 
@@ -35,7 +34,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ### Tool
 
 The FAMILY framework for building parentality relationships is available in the `analysis` folder.  
-Function **x** is doing this and that
 
 ### Model
 
@@ -76,6 +74,10 @@ Then you can open a jupyter lab and select a Julia kernel to play with the noteb
 
 ## Related Papers
 
-Thomasson et al. 2022, Astronomy and Astrophysics, 665, A119. doi:10.1051/0004-6361/202243275
+[A graph-theory-based multi-scale analysis of hierarchical cascade in molecular clouds (Thomasson et al. 2022)](https://doi.org/10.1051/0004-6361/202243275)
 
-Thomasson et al. 2024, Astronomy and Astrophysics, 689, A133. doi:10.1051/0004-6361/202449649
+[A stochastic and analytical model of hierarchical fragmentation (Thomasson et al. 2024)](https://doi.org/10.1051/0004-6361/202449649 )
+
+## If you want more
+
+The dev branch contains additional functions for analysing spatial correlations between polygons and the background image. It also includes scripts to derive an IMF from a CMF through a hierarchical fragmentation process ([The coupled origin of the stellar initial mass function and multiplicity (Thomasson et al. 2026)](https://doi.org/10.1051/0004-6361/202554829))
