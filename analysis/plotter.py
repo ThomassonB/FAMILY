@@ -10,7 +10,6 @@ from tkinter.colorchooser import askcolor
 
 import networkx as nx
 from . import network_utility as utility
-from . import image_utility as iu
 from astropy.io import fits
 import aplpy
 
@@ -43,138 +42,6 @@ def getFragCurve(network, distance, mode="all"):
     stdy = [np.nanstd(ylst) / np.sqrt(len(ylst)) for ylst in yl]
 
     return x, np.asarray(meany), np.asarray(stdy), y
-
-def plotFragmentationCurve_Sizes(structures, distance, figs=None, **kwargs):
-    import pandas as pd
-
-    bins = np.array([1.9, 2.1, 8.4, 13.5, 18.2, 24.9, 36.3, 100])
-    bins = bins * distance
-
-    R_lists = []
-    R0s = []
-    Rmax = 0
-    for s in structures:
-        R = []
-        R0s.append( s.size )
-
-        for node, size in s.component.nodes('_R'):
-            Rmax = max(Rmax, size)
-            R.append(size)
-
-        R_lists.append(R)
-
-    bins[-1] = Rmax
-    x = (bins[1:] + bins[:-1])/2
-    dx = bins[1:] - bins[:-1]
-
-    ys = np.zeros(shape=(len(structures), len(x)))
-    here = np.zeros_like(ys)
-
-    for idx, r in enumerate(R_lists):
-        count, bins = np.histogram(r, bins=bins)
-        df = pd.DataFrame((count != 0))
-
-        tresh = 1
-        df1 = df.cumsum().mask(df)
-        m1 = df1.apply(lambda x: x.map(x.value_counts())).le(tresh)
-        m2 = df1.ne(df1.iloc[0]) & df1.ne(df1.iloc[-1])
-
-        df[m1 & m2] = np.nan
-        arr = np.ravel(df.to_numpy())
-
-        ys[idx, :] = count * arr
-        here[idx, :] = arr
-
-    print(ys)
-
-    meany = np.nanmean(ys, axis=1)
-    stdy = np.nanstd(ys, axis=1) / np.sqrt(np.sum(here, axis=1))
-
-    if figs is None:
-        fig, ax = plt.subplots()
-    else:
-        fig, ax = figs
-    ax.errorbar(np.array(x), meany, stdy, np.array(dx), "o", **kwargs)
-    print("R0s", R0s)
-    ax.plot([min(R0s), max(R0s)], [1, 1], color="k", ls="--")
-
-    ax.set_xscale("log")
-    #ax.set_yscale("log")
-
-    #plt.tick_params(
-    #    axis='x',  # changes apply to the x-axis
-    #    which='both',  # both major and minor ticks are affected
-    #)
-    #ax.minorticks_off()
-
-    #ax.set_xticks(np.array(x))
-    #ax.set_xticklabels(["1.4", "6", "10", "13", "18", "26"])
-
-    #ax.set_ylabel(r"$N(R_l)/N_{sources}$", fontsize=20)
-    #ax.set_xlabel("Scale [kAU]", fontsize=20)
-
-    return fig, ax
-
-def prepareAplpy(image, path=True, **kwargs):
-
-    img, hdr = iu.OpenImage(image, path=path)
-    img[img == 0] = np.nan
-    new_fits = fits.PrimaryHDU(data=img, header=hdr)
-
-    if "fig" not in kwargs:
-        fig_all = plt.figure("Map", figsize=kwargs.get("figsize"))
-    else:
-        fig_all = kwargs.get("fig")
-
-    if kwargs.get("north") != None:
-        if "subplot" not in kwargs:
-            fig = aplpy.FITSFigure(new_fits, figure=fig_all, north=kwargs.get("north"))
-        else:
-            fig = aplpy.FITSFigure(new_fits, figure=fig_all, north=kwargs.get("north"), subplot=kwargs.get("subplot"))
-    else:
-        if "subplot" not in kwargs:
-            fig = aplpy.FITSFigure(new_fits, figure=fig_all)
-        else:
-            fig = aplpy.FITSFigure(new_fits, figure=fig_all, subplot=kwargs.get("subplot"))
-
-    ######### recenter to window
-    if kwargs.get("window") != None:
-        x, y, height, width = kwargs.get("window")
-        fig.recenter(x, y, height=height, width=width)
-
-    if "cmap" not in kwargs:
-        kwargs["cmap"] = 'Greys'
-
-    fig.show_colorscale(cmap=kwargs.get("cmap"), stretch=kwargs.get("stretch"))
-    fig.add_colorbar()
-
-    if kwargs.get("cb label") != None:
-        fig.colorbar.set_axis_label_text(kwargs.get("cb label"))
-
-    fig.colorbar.set_font(size=16)
-    fig.colorbar.set_axis_label_font(size=18)
-
-    fig.tick_labels.set_xformat('dd.ddd')
-    fig.tick_labels.set_yformat('dd.ddd')
-    fig.tick_labels.set_font(size=16)
-
-    fig.axis_labels.set_xtext('RAJ2000')
-    fig.axis_labels.set_ytext('DEJ2000')
-    fig.axis_labels.set_font(size=18)
-
-    ###grid
-    fig.add_grid()
-    fig.grid.set_color('white')
-    fig.grid.set_alpha(0.5)
-    fig.grid.set_linestyle('solid')
-    #fig.grid.set_xspacing(0.3)
-    #fig.grid.set_yspacing(0.3)
-
-    if kwargs.get("arrow_north") != None:
-        x, y, dx, dy = kwargs.get("arrow_north")
-        fig.show_arrows(x, y, dy, dx, facecolor="white", ec="k", width=10)
-
-    return fig
     
 class InspectNetwork:
     
@@ -380,7 +247,6 @@ class InspectNetwork:
     def change_image(self, event):
         data = self.input.get()
         hdu = 0
-        #_, hdu = iu.OpenImage(data)
 
         self.aplpyfig._data, self.aplpyfig._header, self.aplpyfig._wcs, self.aplpyfig._wcsaxes_slices = \
             self.aplpyfig._get_hdu(data, hdu, north=False)

@@ -190,60 +190,12 @@ def getLevels(graph):
 def getNodeAttributes(graph, attribute):
     return [att for _, att in graph.nodes(attribute)]
 
-def getEdgeAttributes(graph, attribute):
-    return [att for _, att in graph.edges.data(attribute)]
-
 def getNodeAttributeName(graph, show=True):
     st = set(k for n in graph.nodes for k in graph.nodes[n].keys())
     if show:
         print('\n Nodes attributes : \n', st, '\n')
     else:
         return st
-
-def getEdgeAttributeName(graph, show=True):
-    st = set(k for u, v in graph.edges for k in graph.edges[u, v].keys())
-    if show:
-        print('\n Edges attributes : \n', st, '\n')
-    return st
-
-def addComponents(graph, components):
-    for c in components:
-        graph = nx.compose(graph, c)
-    return graph
-
-
-def replaceComponents(graph, components):
-    [graph.remove_nodes_from(list(c.nodes)) for c in components]
-    graph = addComponents(graph, components)
-    return graph
-
-
-def meanPix(graph, image, name, verbose=False):
-    from imageutility import MeanPixelInPolygon
-
-    polygons = [poly for _, poly in graph.nodes('Polygon')]
-    pixels = MeanPixelInPolygon(polygons, image, verbose=verbose)
-    attrs = {node: {name: pix} for node, pix in zip(graph.nodes, pixels)}
-    nx.set_node_attributes(graph, attrs)
-
-
-def maxPix(graph, image, name, verbose=False):
-    from imageutility import MaxPixelInPolygon
-
-    polygons = [poly for n, poly in graph.nodes('Polygon')]
-    pixels = MaxPixelInPolygon(polygons, image, verbose=verbose)
-    attrs = {node: {name: pix} for node, pix in zip(graph.nodes, pixels)}
-    nx.set_node_attributes(graph, attrs)
-
-
-def ListPix(graph, image, name, verbose=False):
-    from imageutility import PixelsInPolygon
-
-    polygons = [poly for n, poly in graph.nodes('Polygon')]
-    pixels = PixelsInPolygon(polygons, image, verbose=verbose)
-    attrs = {node: {name: pix} for node, pix in zip(graph.nodes, pixels)}
-    nx.set_node_attributes(graph, attrs)
-
 
 def getComponents(graph, n="all"):
     clst = [graph.subgraph(c).copy() for c in nx.weakly_connected_components(graph)]
@@ -260,92 +212,6 @@ def getComponents(graph, n="all"):
     else:
         print("n has to be list or integer")
         return
-
-
-def deleteNode(graph, feature, **kwargs):
-    if len(feature) != 0:
-        print("... Deleting indicated nodes")
-        g = graph.copy()
-        nbunch = list(selector(g, feature).nodes)
-        g.remove_nodes_from(nbunch)
-        mapping = {node: new_node for new_node, (node, attrs) in enumerate(g.nodes.items())}
-        return nx.relabel_nodes(g, mapping)
-    else:
-        print("... No nodes to be deleted")
-
-
-def saveNetwork(graph):
-    import pickle
-    import os
-    from tkinter import filedialog, simpledialog
-
-    time.sleep(0.5)
-    name = simpledialog.askstring(title="Enter the file name", prompt=" ")
-    time.sleep(0.5)
-    path = filedialog.askdirectory()
-    time.sleep(0.5)
-
-    file = path+"/"+name
-
-    if not os.path.isdir(file):
-        os.makedirs(file)
-
-    nodes = dict(graph.nodes.data())
-    edges = nx.to_dict_of_dicts(graph)
-
-    with open(f'{file}/Nodes.pkl', 'wb') as outp:
-        pickle.dump(nodes, outp, pickle.HIGHEST_PROTOCOL)
-    with open(f'{file}/Edges.pkl', 'wb') as outp:
-        pickle.dump(edges, outp, pickle.HIGHEST_PROTOCOL)
-
-
-def loadNetwork(isdirected=True):
-    import pickle
-    from tkinter import filedialog
-
-    time.sleep(0.5)
-    path = filedialog.askdirectory()
-    time.sleep(0.5)
-
-    with open(path+'/Nodes.pkl', 'rb') as inp:
-        nodes = pickle.load(inp)
-    with open(path+'/Edges.pkl', 'rb') as inp:
-        edges = pickle.load(inp)
-
-    if isdirected:
-        graph = nx.DiGraph()
-    else:
-        graph = nx.Graph()
-
-    graph.add_nodes_from(nodes)
-    nx.set_node_attributes(graph, nodes)
-
-    ebunch = [(u, v, attr) for u, d in edges.items() for v, attr in d.items()]
-
-    graph.add_edges_from(ebunch)
-
-    scales = sorted(list(set(dict(nx.get_node_attributes(graph, '_beam')).values())))
-    return graph, np.array(scales)
-
-def statistics(graph, attribute):
-    d = {}
-    lst = [att for _, att in graph.nodes(attribute) if att]
-
-    d["count"] = len(lst)
-    d["mean"] = np.mean(lst)
-    d["std"] = np.std(lst)
-    d["25%"], d["50%"], d["75%"] = np.percentile(lst, [25, 50, 75])
-    d["min"] = min(lst)
-    d["max"] = max(lst)
-
-    return d
-
-
-def distanceMatrix(graph, p=0.05, verbose=True):
-    from polygons import distancePolyst
-    polygons = [poly for n, poly in graph.nodes("Polygon")]
-    return distancePolyst(polygons, p, verbose)
-
 
 def transitiveTriplets(digraph):
     triangles = 0
@@ -378,81 +244,3 @@ def toDataFrame(graph, names=None):
     #    data["_Polygon"][i] = polygon.exterior.xy
 
     return pd.DataFrame(data)
-
-
-
-def angularPosition(network):
-    from polygons import sepAngular
-
-    sizes = []
-    lst = [[], [], [], []]
-
-    for in_node, out_node in network.edges:
-        sizes.append(network.nodes("_R")[in_node])
-        lst[0].append(network.nodes("_X")[in_node])
-        lst[1].append(network.nodes("_Y")[in_node])
-        lst[2].append(network.nodes("_X")[out_node])
-        lst[3].append(network.nodes("_Y")[out_node])
-
-    return sepAngular(lst[0], lst[1], lst[2], lst[3]) / sizes
-
-def ScaledtoReal(x, r, ro):
-    """
-    Compute the real value according to the scaled value in the case of a fractal behavior.
-    For example if x is defined with respect to a scale reduction of ro, compute the actual value of x at the specific
-    scaling ratio r
-
-    Parameters
-    ----------
-    x : float
-        value of reference when the scale is reduced by a factor ro
-    r : array_like or float
-        actual scaling ratio
-    ro : float
-        scaling ratio of reference
-
-    Returns
-    -------
-    The actual value after a scale reduction of r
-    """
-    return x ** (np.log(r) / np.log(ro))
-
-def RealtoScaled(x, r, ro):
-    """
-    Inverse operation as ScaledtoReal
-
-    Compute the scaled value according to the real value in the case of a fractal behavior.
-
-    Parameters
-    ----------
-    x : float
-        actual value when the scale is reduced by a factor r
-    r : array_like or float
-        actual scaling ratio
-    ro : float
-        scaling ratio of reference
-
-    Returns
-    -------
-    The actual value after a scale reduction of r
-    """
-    return x ** (np.log(ro) / np.log(r))
-
-def ScaletoHave(xs, xr, ro):
-    """
-    Compute the scales necessary to get the values xs for a fractal behavior.
-
-    Parameters
-    ----------
-    xs : array_like or float
-        actual value when the scale is reduced by the factor we are looking for
-    xr : float
-        value of reference after a reduction of ro
-    ro : float
-        scaling ratio of reference
-
-    Returns
-    -------
-    The serie of scales we need to get xs values
-    """
-    return ro ** (np.log(xr) / np.log(xs))
