@@ -42,7 +42,7 @@ def getFragCurve(network, distance, mode="all"):
     meany = [np.nanmean(ylst) for ylst in yl]
     stdy = [np.nanstd(ylst) / np.sqrt(len(ylst)) for ylst in yl]
 
-    return x, meany, stdy
+    return x, np.asarray(meany), np.asarray(stdy), y
 
 def plotFragmentationCurve_Sizes(structures, distance, figs=None, **kwargs):
     import pandas as pd

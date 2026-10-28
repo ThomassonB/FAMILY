@@ -3,6 +3,7 @@ from enum import IntEnum
 import os
 import tomllib
 import re
+import ast
 from shapely.geometry import Polygon, LineString
 
 import numpy as np
@@ -59,10 +60,22 @@ def _load_yso(df, cfg):
     df[strings_ref[8]] = cfg["observation"]["beam"]
 
 def _load_polygons(df, cfg):
-    df[strings_ref[0]] = df.pop(cfg["columns_names_in_catalog"]["Xposition"]) * cfg["unit_conversion"]["Xposition_to_deg"]
-    df[strings_ref[1]] = df.pop(cfg["columns_names_in_catalog"]["Yposition"]) * cfg["unit_conversion"]["Yposition_to_deg"]
+    for i, label in enumerate(("Xposition", "Yposition")):
+        column = cfg["columns_names_in_catalog"][label]
+        factor = cfg["unit_conversion"][f"{label}_to_deg"]
+    
+        df[strings_ref[i]] = df.pop(column).apply(
+            lambda text: [
+                value * factor
+                for value in ast.literal_eval(text)
+            ]
+        )
+
+    #df[strings_ref[0]] = df.pop(cfg["columns_names_in_catalog"]["Xposition"]) * cfg["unit_conversion"]["Xposition_to_deg"]
+    #df[strings_ref[1]] = df.pop(cfg["columns_names_in_catalog"]["Yposition"]) * cfg["unit_conversion"]["Yposition_to_deg"]
 
     df[strings_ref[8]] = cfg["observation"]["beam"]
+    
     
 def load_data(file, reader_to_df):
     cfg = read_toml(file)
@@ -73,10 +86,10 @@ def load_data(file, reader_to_df):
     if cfg["objects"]["type"] == ObjectType.ELLIPSE:
         _load_ellipses(df, cfg)
 
-    elif metadata["object_type"] == ObjectType.YSO:
+    elif cfg["objects"]["type"] == ObjectType.YSO:
         _load_yso(df, cfg)
 
-    elif metadata["object_type"] == ObjectType.POLYGON:
+    elif cfg["objects"]["type"] == ObjectType.POLYGON:
         _load_polygons(df, cfg)
 
     else:
@@ -84,11 +97,11 @@ def load_data(file, reader_to_df):
         
     metadata = {
         "df": df,
-        "comment": cfg["objects"]["comment"],
         "name":cfg["dataset"]["name"]
     }
     metadata.update(cfg["files"])
     metadata.update(cfg["observation"])
+    metadata.update(cfg["objects"])
     return metadata
 
 def read_ds9_polygons(path):
