@@ -71,14 +71,6 @@ class Data:
 
         self.color = 'r'
 
-    def __str__(self):
-        ok_values = {'comment', 'fits_img', 'catalog', 'beam ["]', 'wavelength [µm]', 'distance [pc]'}
-        lines = [f"name \t\t- \t{self.name}"]
-        lines.extend(f"{key} \t- \t{value}" for key, value in vars(self).items() if key in ok_values)
-        lines.append("")
-        lines.append(self.df.to_string())
-        return "\n".join(lines)
-
     def __iter__(self):
         for obj in self.df:
             yield obj
